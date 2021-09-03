@@ -9,12 +9,14 @@ import StormDB from "stormdb";
 import { IUniswapV2Pair as UniswapV2Pair } from "@hifi/flash-swap/typechain/IUniswapV2Pair";
 import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pair.json";
 import fs from "fs";
+import { initDb } from "../helpers";
 
 // TODO: replace with improved logging/cloud logging
 const log = console.log;
 
 export class Bot {
   private contracts;
+  private db: Db;
   private deployments: {
     balanceSheet: BalanceSheet;
     hifiFlashSwap: HifiFlashUniswap;
@@ -29,6 +31,7 @@ export class Bot {
 
   constructor(args: Args) {
     this.contracts = args.network.contracts;
+    this.db = initDb(args.persistence);
     this.persistence = args.persistence;
     this.provider = args.provider;
     this.signer = args.signer;
