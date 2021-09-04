@@ -1,15 +1,14 @@
 import { Args, Db, Vaults } from "./types";
 import { BigNumber, Contract, Event, EventFilter, Wallet, providers } from "ethers";
+import { LAST_SYNCED_BLOCK, VAULTS } from "./constants";
+import { batchQueryFilter, initDb } from "../helpers";
 
 import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
 import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.json";
 import { HifiFlashUniswapV2 as HifiFlashUniswap } from "@hifi/flash-swap/typechain/HifiFlashUniswapV2";
 import { abi as HifiFlashUniswapAbi } from "@hifi/flash-swap/artifacts/HifiFlashUniswapV2.json";
-import StormDB from "stormdb";
 import { IUniswapV2Pair as UniswapV2Pair } from "@hifi/flash-swap/typechain/IUniswapV2Pair";
 import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pair.json";
-import fs from "fs";
-import { initDb } from "../helpers";
 
 // TODO: replace with improved logging/cloud logging
 const log = console.log;
@@ -32,6 +31,7 @@ export class Bot {
   constructor(args: Args) {
     this.contracts = args.network.contracts;
     this.db = initDb(args.persistence);
+    this.db.default({ lastSyncedBlock: -1, vaults: {} });
     this.persistence = args.persistence;
     this.provider = args.provider;
     this.signer = args.signer;
@@ -47,7 +47,9 @@ export class Bot {
   }
 
   // getter methods
-  public vaults(): any {}
+  public vaults(): Vaults {
+    return this.db.get(VAULTS).value();
+  }
 
   // effects
   public async liquidateAllUnderwater(): Promise<void> {}
@@ -73,7 +75,74 @@ export class Bot {
     });
   }
 
-  public stop(): void {}
+  public stop(): void {
+    log("Stopping Hifi liquidator");
+    this.provider.removeAllListeners();
+  }
 
-  public async syncAll(_latestBlock?: number): Promise<void> {}
+  public async syncAll(_latestBlock?: number): Promise<void> {
+    const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
+    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.startBlock;
+
+    const borrowEvents = await batchQueryFilter(
+      this.deployments.balanceSheet,
+      this.deployments.balanceSheet.filters.Borrow(null, null, null),
+      startBlock,
+      latestBlock,
+    );
+    const depositEvents = await batchQueryFilter(
+      this.deployments.balanceSheet,
+      this.deployments.balanceSheet.filters.DepositCollateral(null, null, null),
+      startBlock,
+      latestBlock,
+    );
+
+    if (!this.silentMode) {
+      if (borrowEvents.length > 0) {
+        log("Captured %s borrow event(s)", borrowEvents.length);
+      }
+      if (depositEvents.length > 0) {
+        log("Captured %s deposit event(s)", depositEvents.length);
+      }
+    }
+
+    // event decoding/processing
+    for (let i = 0; i < borrowEvents.length; i++) {
+      const event = borrowEvents[i];
+      if (event.decode === undefined) throw Error("Event is not decodable");
+      const { account, bond }: { account: string; bond: string } = event.decode(event.data, event.topics);
+      const vaults = this.db.get(VAULTS).value() as Vaults;
+      if (vaults[account] === undefined) {
+        vaults[account] = {
+          bonds: [],
+          collaterals: [],
+        };
+      }
+      if (!vaults[account].bonds.includes(bond)) {
+        vaults[account].bonds = [...vaults[account].bonds, bond];
+      }
+      this.db.set(VAULTS, vaults);
+      await this.db.save();
+    }
+    for (let i = 0; i < depositEvents.length; i++) {
+      const event = depositEvents[i];
+      if (event.decode === undefined) throw Error("Event is not decodable");
+      const { account, collateral }: { account: string; collateral: string } = event.decode(event.data, event.topics);
+      const vaults = this.db.get(VAULTS).value() as Vaults;
+      if (vaults[account] === undefined) {
+        vaults[account] = {
+          bonds: [],
+          collaterals: [],
+        };
+      }
+      if (!vaults[account].collaterals.includes(collateral)) {
+        vaults[account].collaterals = [...vaults[account].collaterals, collateral];
+      }
+      this.db.set(VAULTS, vaults);
+      await this.db.save();
+    }
+
+    this.db.set(LAST_SYNCED_BLOCK, latestBlock);
+    await this.db.save();
+  }
 }
