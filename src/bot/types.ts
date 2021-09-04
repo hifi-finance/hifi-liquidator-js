@@ -31,12 +31,7 @@ export type Provider = providers.BaseProvider;
 
 export type Vaults = {
   [account: string]: {
-    collaterals: {
-      [token: string]: BigNumber;
-    };
-    debts: {
-      [token: string]: BigNumber;
-    };
-    isAccountUnderwater: boolean;
+    bonds: string[];
+    collaterals: string[];
   };
 };
