@@ -1,11 +1,14 @@
 import { Args, Db, Vaults } from "./types";
+// TODO: remove unused dependencies
 import { BigNumber, Contract, Event, EventFilter, Wallet, providers } from "ethers";
 import { LAST_SYNCED_BLOCK, VAULTS } from "./constants";
-import { batchQueryFilter, initDb } from "../helpers";
+import { batchQueryFilter, getUniswapV2PairAddress, initDb } from "../helpers";
 
 import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
 import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.json";
-import { HifiFlashUniswapV2 as HifiFlashUniswap } from "@hifi/flash-swap/typechain/HifiFlashUniswapV2";
+import { HToken } from "@hifi/protocol/typechain/HToken";
+import { abi as HTokenAbi } from "@hifi/protocol/artifacts/HToken.json";
+import { HifiFlashUniswapV2 as HifiFlashSwap } from "@hifi/flash-swap/typechain/HifiFlashUniswapV2";
 import { abi as HifiFlashUniswapAbi } from "@hifi/flash-swap/artifacts/HifiFlashUniswapV2.json";
 import { IUniswapV2Pair as UniswapV2Pair } from "@hifi/flash-swap/typechain/IUniswapV2Pair";
 import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pair.json";
@@ -14,35 +17,33 @@ import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pa
 const log = console.log;
 
 export class Bot {
-  private contracts;
   private db: Db;
   private deployments: {
     balanceSheet: BalanceSheet;
-    hifiFlashSwap: HifiFlashUniswap;
-    wbtcUsdcPair: UniswapV2Pair;
-    wethUsdcPair: UniswapV2Pair;
+    hifiFlashSwap: HifiFlashSwap;
   };
+  private network;
   private persistence;
   private provider;
   private signer;
   private silentMode;
-  private startBlock;
 
   constructor(args: Args) {
-    this.contracts = args.network.contracts;
     this.db = initDb(args.persistence);
     this.db.default({ lastSyncedBlock: -1, vaults: {} });
+    this.network = args.network;
     this.persistence = args.persistence;
     this.provider = args.provider;
     this.signer = args.signer;
     this.silentMode = args.silentMode;
-    this.startBlock = args.network.startBlock;
 
     this.deployments = {
-      balanceSheet: new Contract(this.contracts.balanceSheet, BalanceSheetAbi, this.signer) as BalanceSheet,
-      hifiFlashSwap: new Contract(this.contracts.hifiFlashSwap, HifiFlashUniswapAbi, this.signer) as HifiFlashUniswap,
-      wbtcUsdcPair: new Contract(this.contracts.wbtcUsdcPair, UniswapV2PairAbi, this.signer) as UniswapV2Pair,
-      wethUsdcPair: new Contract(this.contracts.wethUsdcPair, UniswapV2PairAbi, this.signer) as UniswapV2Pair,
+      balanceSheet: new Contract(this.network.contracts.balanceSheet, BalanceSheetAbi, this.signer) as BalanceSheet,
+      hifiFlashSwap: new Contract(
+        this.network.contracts.hifiFlashSwap,
+        HifiFlashUniswapAbi,
+        this.signer,
+      ) as HifiFlashSwap,
     };
   }
 
@@ -52,16 +53,45 @@ export class Bot {
   }
 
   // effects
-  public async liquidateAllUnderwater(): Promise<void> {}
+  public async liquidateAllUnderwater(): Promise<void> {
+    const vaults = this.db.get(VAULTS).value() as Vaults;
+    const accounts = Object.keys(vaults);
+    for (const account of accounts) {
+      const { bonds, collaterals } = vaults[account];
+      const { shortfallLiquidity } = await this.deployments.balanceSheet.getCurrentAccountLiquidity(account);
+      const isUnderwater = shortfallLiquidity.gt(0);
+      if (isUnderwater) {
+        for (const bond of bonds) {
+          const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
+          if (debtAmount.gt(0)) {
+            for (const collateral of collaterals) {
+              const hToken = new Contract(bond, HTokenAbi, this.signer) as HToken;
+              const underlying = await hToken.underlying();
+              const pairAddress = getUniswapV2PairAddress({
+                factoryAddress: this.network.uniswap.factory,
+                initCodeHash: this.network.uniswap.initCodeHash,
+                tokenA: collateral,
+                tokenB: underlying,
+              });
+              const pair = new Contract(pairAddress, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+              pair.totalSupply;
+              // TODO: liquidate collateral(s) of underwater borrow position
+              // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
+            }
+          }
+        }
+      }
+    }
+  }
 
   public async run(): Promise<void> {
     if (!this.silentMode) {
       log("Starting Hifi liquidator");
       log("Profits will be sent to %s", await this.signer.getAddress());
       log("Data persistence is enabled: %s", this.persistence);
-      log("BalanceSheet: %s", this.contracts.balanceSheet);
-      log("HTokens: %s", this.contracts.htokens);
-      log("HifiFlashSwap: %s", this.contracts.hifiFlashSwap);
+      log("BalanceSheet: %s", this.network.contracts.balanceSheet);
+      log("HTokens: %s", this.network.contracts.htokens);
+      log("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
     }
 
     await this.syncAll();
@@ -82,8 +112,9 @@ export class Bot {
 
   public async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
-    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.startBlock;
+    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.network.startBlock;
 
+    // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
     const borrowEvents = await batchQueryFilter(
       this.deployments.balanceSheet,
       this.deployments.balanceSheet.filters.Borrow(null, null, null),

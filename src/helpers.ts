@@ -1,4 +1,5 @@
 import { Contract, Event, EventFilter } from "ethers";
+import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
 
 import StormDB from "stormdb";
 
@@ -19,6 +20,25 @@ export async function batchQueryFilter(
     events = [...events, ...currEvent];
   }
   return events;
+}
+
+export function getUniswapV2PairAddress({
+  factoryAddress,
+  initCodeHash,
+  tokenA,
+  tokenB,
+}: {
+  factoryAddress: string;
+  initCodeHash: string;
+  tokenA: string;
+  tokenB: string;
+}) {
+  const [token0, token1] = tokenA.toLowerCase() < tokenB.toLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
+  return getCreate2Address(
+    factoryAddress,
+    solidityKeccak256(["bytes"], [solidityPack(["address", "address"], [token0, token1])]),
+    initCodeHash,
+  );
 }
 
 export function initDb(persistent: boolean) {

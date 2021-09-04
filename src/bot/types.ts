@@ -9,6 +9,10 @@ export type Args = {
       wbtcUsdcPair: string;
       wethUsdcPair: string;
     };
+    uniswap: {
+      factory: string;
+      initCodeHash: string;
+    };
     startBlock: number;
   };
   persistence: boolean;
