@@ -1,6 +1,5 @@
-import { Args, Db, Vaults } from "./types";
-// TODO: remove unused dependencies
-import { BigNumber, Contract, Event, EventFilter, Wallet, providers, utils } from "ethers";
+import { Args, Db, Vault, Vaults } from "./types";
+import { Contract, utils } from "ethers";
 import { LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 
@@ -54,7 +53,7 @@ export class Bot {
 
   // effects
   public async liquidateAllUnderwater(): Promise<void> {
-    const vaults = this.db.get(VAULTS).value() as Vaults;
+    const vaults = this.vaults();
     const accounts = Object.keys(vaults);
     for (const account of accounts) {
       const { bonds, collaterals } = vaults[account];
@@ -135,7 +134,6 @@ export class Bot {
   public async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
     const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.network.startBlock;
-
     // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
     const borrowEvents = await batchQueryFilter(
       this.deployments.balanceSheet,
@@ -149,7 +147,6 @@ export class Bot {
       startBlock,
       latestBlock,
     );
-
     if (!this.silentMode) {
       if (borrowEvents.length > 0) {
         log("Captured %s borrow event(s)", borrowEvents.length);
@@ -158,44 +155,46 @@ export class Bot {
         log("Captured %s deposit event(s)", depositEvents.length);
       }
     }
-
     // event decoding/processing
     for (let i = 0; i < borrowEvents.length; i++) {
       const event = borrowEvents[i];
       if (event.decode === undefined) throw Error("Event is not decodable");
       const { account, bond }: { account: string; bond: string } = event.decode(event.data, event.topics);
-      const vaults = this.db.get(VAULTS).value() as Vaults;
-      if (vaults[account] === undefined) {
-        vaults[account] = {
-          bonds: [],
-          collaterals: [],
-        };
-      }
-      if (!vaults[account].bonds.includes(bond)) {
-        vaults[account].bonds = [...vaults[account].bonds, bond];
-      }
-      this.db.set(VAULTS, vaults);
-      await this.db.save();
+      await this.updateVaults(account, "push", { bonds: bond });
     }
     for (let i = 0; i < depositEvents.length; i++) {
       const event = depositEvents[i];
       if (event.decode === undefined) throw Error("Event is not decodable");
       const { account, collateral }: { account: string; collateral: string } = event.decode(event.data, event.topics);
-      const vaults = this.db.get(VAULTS).value() as Vaults;
-      if (vaults[account] === undefined) {
-        vaults[account] = {
-          bonds: [],
-          collaterals: [],
-        };
-      }
-      if (!vaults[account].collaterals.includes(collateral)) {
-        vaults[account].collaterals = [...vaults[account].collaterals, collateral];
-      }
-      this.db.set(VAULTS, vaults);
-      await this.db.save();
+      await this.updateVaults(account, "push", { collaterals: collateral });
     }
-
     this.db.set(LAST_SYNCED_BLOCK, latestBlock);
+    await this.db.save();
+  }
+
+  private async updateVaults(
+    account: string,
+    type: "pop" | "push",
+    fragment: { [key: string]: string },
+  ): Promise<void> {
+    const vaults = this.vaults();
+    if (vaults[account] === undefined) {
+      vaults[account] = {
+        bonds: [],
+        collaterals: [],
+      };
+    }
+    const key = Object.keys(fragment)[0] as keyof Vault;
+    if (type === "pop") {
+      if (vaults[account][key].includes(fragment[key])) {
+        vaults[account][key] = vaults[account][key].filter(i => i !== fragment[key]);
+      }
+    } else if (type === "push") {
+      if (!vaults[account][key].includes(fragment[key])) {
+        vaults[account][key] = [...vaults[account][key], fragment[key]];
+      }
+    }
+    this.db.set(VAULTS, vaults);
     await this.db.save();
   }
 }
