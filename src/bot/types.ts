@@ -33,9 +33,11 @@ export type Db = {
 
 export type Provider = providers.BaseProvider;
 
+export type Vault = {
+  bonds: string[];
+  collaterals: string[];
+};
+
 export type Vaults = {
-  [account: string]: {
-    bonds: string[];
-    collaterals: string[];
-  };
+  [account: string]: Vault;
 };
