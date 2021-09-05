@@ -1,6 +1,6 @@
-import { Args, Db, Vault, Vaults } from "./types";
+import { Args, Db, Htokens, Vault, Vaults } from "./types";
 import { Contract, utils } from "ethers";
-import { LAST_SYNCED_BLOCK, VAULTS } from "./constants";
+import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 
 import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
@@ -29,7 +29,7 @@ export class Bot {
 
   constructor(args: Args) {
     this.db = initDb(args.persistence);
-    this.db.default({ lastSyncedBlock: -1, vaults: {} });
+    this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.network = args.network;
     this.persistence = args.persistence;
     this.provider = args.provider;
@@ -47,11 +47,30 @@ export class Bot {
   }
 
   // getter methods
+  public htokens(): Htokens {
+    return this.db.get(HTOKENS).value();
+  }
+
   public vaults(): Vaults {
     return this.db.get(VAULTS).value();
   }
 
   // effects
+  private async cacheHtoken(htoken: string): Promise<void> {
+    const htokens = this.htokens();
+    if (htokens[htoken] === undefined) {
+      const contract = new Contract(htoken, HTokenAbi, this.signer) as HToken;
+      const underlying = await contract.underlying();
+      const underlyingPrecisionScalar = (await contract.underlyingPrecisionScalar()).toNumber();
+      htokens[htoken] = {
+        underlying,
+        underlyingPrecisionScalar,
+      };
+      this.db.set(HTOKENS, htokens);
+      await this.db.save();
+    }
+  }
+
   public async liquidateAllUnderwater(): Promise<void> {
     const vaults = this.vaults();
     const accounts = Object.keys(vaults);
@@ -63,27 +82,21 @@ export class Bot {
         for (const bond of bonds) {
           const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
           if (debtAmount.gt(0)) {
-            const hToken = new Contract(bond, HTokenAbi, this.signer) as HToken;
-            // TODO: cache the underlying address
-            const underlying = await hToken.underlying();
-            const underlyingPrecisionScalar = await hToken.underlyingPrecisionScalar();
+            const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
             for (const collateral of collaterals) {
               // TODO: check rest of collateral is still claimable after a partial liquidation
-              const {
-                pair: pairAddress,
-                token0,
-                token1,
-              } = getUniswapV2PairInfo({
+              const { pair, token0, token1 } = getUniswapV2PairInfo({
                 factoryAddress: this.network.uniswap.factory,
                 initCodeHash: this.network.uniswap.initCodeHash,
                 tokenA: collateral,
                 tokenB: underlying,
               });
-              const pair = new Contract(pairAddress, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+              const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
               // TODO: liquidate collateral(s) of underwater borrow position
               // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
               // TODO: profitibility calculation for liquidation
-              await pair.swap(
+              // TODO: pop the collateral from persistence list after liquidation
+              await contract.swap(
                 addressesAreEqual(token0, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
                 addressesAreEqual(token1, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
                 this.network.contracts.hifiFlashSwap,
@@ -160,6 +173,7 @@ export class Bot {
       const event = borrowEvents[i];
       if (event.decode === undefined) throw Error("Event is not decodable");
       const { account, bond }: { account: string; bond: string } = event.decode(event.data, event.topics);
+      await this.cacheHtoken(bond);
       await this.updateVaults(account, "push", { bonds: bond });
     }
     for (let i = 0; i < depositEvents.length; i++) {

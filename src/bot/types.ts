@@ -31,6 +31,13 @@ export type Db = {
   set: (key: string, value: any) => void;
 };
 
+export type Htokens = {
+  [htoken: string]: {
+    underlying: string;
+    underlyingPrecisionScalar: number;
+  };
+};
+
 export type Provider = providers.BaseProvider;
 
 export type Vault = {
