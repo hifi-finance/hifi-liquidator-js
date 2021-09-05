@@ -1,8 +1,8 @@
 import { Args, Db, Vaults } from "./types";
 // TODO: remove unused dependencies
-import { BigNumber, Contract, Event, EventFilter, Wallet, providers } from "ethers";
+import { BigNumber, Contract, Event, EventFilter, Wallet, providers, utils } from "ethers";
 import { LAST_SYNCED_BLOCK, VAULTS } from "./constants";
-import { batchQueryFilter, getUniswapV2PairAddress, initDb } from "../helpers";
+import { addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 
 import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
 import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.json";
@@ -64,19 +64,41 @@ export class Bot {
         for (const bond of bonds) {
           const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
           if (debtAmount.gt(0)) {
+            const hToken = new Contract(bond, HTokenAbi, this.signer) as HToken;
+            // TODO: cache the underlying address
+            const underlying = await hToken.underlying();
+            const underlyingPrecisionScalar = await hToken.underlyingPrecisionScalar();
             for (const collateral of collaterals) {
-              const hToken = new Contract(bond, HTokenAbi, this.signer) as HToken;
-              const underlying = await hToken.underlying();
-              const pairAddress = getUniswapV2PairAddress({
+              // TODO: check rest of collateral is still claimable after a partial liquidation
+              const {
+                pair: pairAddress,
+                token0,
+                token1,
+              } = getUniswapV2PairInfo({
                 factoryAddress: this.network.uniswap.factory,
                 initCodeHash: this.network.uniswap.initCodeHash,
                 tokenA: collateral,
                 tokenB: underlying,
               });
               const pair = new Contract(pairAddress, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
-              pair.totalSupply;
               // TODO: liquidate collateral(s) of underwater borrow position
               // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
+              // TODO: profitibility calculation for liquidation
+              await pair.swap(
+                addressesAreEqual(token0, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
+                addressesAreEqual(token1, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
+                this.network.contracts.hifiFlashSwap,
+                utils.defaultAbiCoder.encode(
+                  ["tuple(address borrower, address bond, uint256 minProfit)"],
+                  [
+                    {
+                      borrower: account,
+                      bond: bond,
+                      minProfit: "0",
+                    },
+                  ],
+                ),
+              );
             }
           }
         }
