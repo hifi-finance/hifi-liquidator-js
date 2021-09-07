@@ -7,14 +7,24 @@
         "0x1286c3850e3b0b45d887287044d9F224E8AAEad6",
         "0x9d56ddda96898Dc19Efd6Fc2EF553c9d58B428e9",
         "0xFf14D868fa6F5CD8b4c5DE6E67Ca646feC073A18"
-      ],
-      "wbtcUsdcPair": "0xF6a637525402643B0654a54bEAd2Cb9A83C8B498",
-      "wethUsdcPair": "0x853Ee4b2A13f8a742d64C8F088bE7bA2131f670d"
+      ]
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
       "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
     },
     "startBlock": 18431897
+  },
+  "rinkeby": {
+    "contracts": {
+      "balanceSheet": "0xfd92939CBDa6be4A2f9D3C4044eD174b3e895FcB",
+      "hifiFlashSwap": "0x31eeF0C9A9069a97b03Dc6CaED623bBD2828c2a0",
+      "htokens": ["0xE5C2B699241A09145d51A1c6Bbd81c2AfC60c461", "0x2295faeABEA510faA82127792Fa52f40d996cC65"]
+    },
+    "uniswap": {
+      "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+    },
+    "startBlock": 9183497
   }
 }
