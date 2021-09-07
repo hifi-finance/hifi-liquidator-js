@@ -6,8 +6,6 @@ export type Args = {
       balanceSheet: string;
       hifiFlashSwap: string;
       htokens: string[];
-      wbtcUsdcPair: string;
-      wethUsdcPair: string;
     };
     uniswap: {
       factory: string;
