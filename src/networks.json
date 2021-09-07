@@ -18,8 +18,12 @@
   "rinkeby": {
     "contracts": {
       "balanceSheet": "0xfd92939CBDa6be4A2f9D3C4044eD174b3e895FcB",
-      "hifiFlashSwap": "0x31eeF0C9A9069a97b03Dc6CaED623bBD2828c2a0",
-      "htokens": ["0xE5C2B699241A09145d51A1c6Bbd81c2AfC60c461", "0x2295faeABEA510faA82127792Fa52f40d996cC65"]
+      "hifiFlashSwap": "0x4b9574A5f32eD6c5D9424eb0e87ad2dE39e4FCa8",
+      "htokens": [
+        "0xE5C2B699241A09145d51A1c6Bbd81c2AfC60c461",
+        "0x2295faeABEA510faA82127792Fa52f40d996cC65",
+        "0x1fEaBd9BeE72427303f03cc1152bD48Ea92F74Ff"
+      ]
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
