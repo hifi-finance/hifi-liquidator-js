@@ -1,5 +1,5 @@
 import { Args, Db, Htokens, Vault, Vaults } from "./types";
-import { Contract, utils } from "ethers";
+import { BigNumberish, Contract, utils } from "ethers";
 import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 
@@ -47,11 +47,27 @@ export class Bot {
   }
 
   // getter methods
-  public htokens(): Htokens {
+  private async isLiquidatable(account: string, collateral: string, bond: string): Promise<boolean> {
+    const { shortfallLiquidity } = await this.deployments.balanceSheet.getHypotheticalAccountLiquidity(
+      account,
+      collateral,
+      0,
+      bond,
+      0,
+    );
+    return shortfallLiquidity.gt(0);
+  }
+
+  private async isUnderwater(account: string): Promise<boolean> {
+    const { shortfallLiquidity } = await this.deployments.balanceSheet.getCurrentAccountLiquidity(account);
+    return shortfallLiquidity.gt(0);
+  }
+
+  private htokens(): Htokens {
     return this.db.get(HTOKENS).value();
   }
 
-  public vaults(): Vaults {
+  private vaults(): Vaults {
     return this.db.get(VAULTS).value();
   }
 
@@ -71,19 +87,18 @@ export class Bot {
     }
   }
 
-  public async liquidateAllUnderwater(): Promise<void> {
+  private async liquidateAllUnderwater(): Promise<void> {
     const vaults = this.vaults();
     const accounts = Object.keys(vaults);
     for (const account of accounts) {
       const { bonds, collaterals } = vaults[account];
-      const { shortfallLiquidity } = await this.deployments.balanceSheet.getCurrentAccountLiquidity(account);
-      const isUnderwater = shortfallLiquidity.gt(0);
-      if (isUnderwater) {
+      if (await this.isUnderwater(account)) {
         for (const bond of bonds) {
-          const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
-          if (debtAmount.gt(0)) {
-            const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
-            for (const collateral of collaterals) {
+          const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
+          for (const collateral of collaterals) {
+            const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
+            const swapAmount = debtAmount.div(underlyingPrecisionScalar);
+            if (swapAmount.gt(0) && (await this.isLiquidatable(account, collateral, bond))) {
               // TODO: check rest of collateral is still claimable after a partial liquidation
               const { pair, token0, token1 } = getUniswapV2PairInfo({
                 factoryAddress: this.network.uniswap.factory,
@@ -96,9 +111,9 @@ export class Bot {
               // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
               // TODO: profitibility calculation for liquidation
               // TODO: pop the collateral from persistence list after liquidation
-              await contract.swap(
-                addressesAreEqual(token0, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
-                addressesAreEqual(token1, underlying) ? debtAmount.div(underlyingPrecisionScalar) : 0,
+              const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+                addressesAreEqual(token0, underlying) ? swapAmount : 0,
+                addressesAreEqual(token1, underlying) ? swapAmount : 0,
                 this.network.contracts.hifiFlashSwap,
                 utils.defaultAbiCoder.encode(
                   ["tuple(address borrower, address bond, uint256 minProfit)"],
@@ -110,7 +125,14 @@ export class Bot {
                     },
                   ],
                 ),
-              );
+              ];
+              try {
+                const g = await contract.estimateGas.swap(...swapArgs);
+                // TODO: profitibility calculation (including gas)
+                const tx = await contract.swap(...swapArgs);
+                const receipt = await tx.wait(1);
+                log("Submitted liquidation at hash: %s", receipt.transactionHash);
+              } catch (e) {}
             }
           }
         }
@@ -129,7 +151,6 @@ export class Bot {
     }
 
     await this.syncAll();
-
     this.provider.on("block", async blockNumber => {
       if (!this.silentMode) {
         log("Block #%s", blockNumber);
@@ -144,7 +165,7 @@ export class Bot {
     this.provider.removeAllListeners();
   }
 
-  public async syncAll(_latestBlock?: number): Promise<void> {
+  private async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
     const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.network.startBlock;
     // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
