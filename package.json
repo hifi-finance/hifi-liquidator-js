@@ -22,20 +22,19 @@
     "pinst": "^2.1.6",
     "prettier": "^2.3.2",
     "shx": "^0.3.3",
+    "ts-node": "^10.2.1",
     "typescript": "~4.3.5"
   },
   "files": [
-    "/dist",
     "/types"
   ],
   "license": "MIT",
-  "main": "./dist/index.js",
+  "main": "./src",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "start": "node .",
-    "build": "tsc --build tsconfig.prod.json",
+    "start": "ts-node .",
     "clean": "shx rm -rf ./dist",
     "commit": "git-cz",
     "lint": "yarn run lint:ts && yarn run prettier:check",
