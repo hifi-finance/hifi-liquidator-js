@@ -47,17 +47,6 @@ export class Bot {
   }
 
   // getter methods
-  private async isLiquidatable(account: string, collateral: string, bond: string): Promise<boolean> {
-    const { shortfallLiquidity } = await this.deployments.balanceSheet.getHypotheticalAccountLiquidity(
-      account,
-      collateral,
-      0,
-      bond,
-      0,
-    );
-    return shortfallLiquidity.gt(0);
-  }
-
   private async isUnderwater(account: string): Promise<boolean> {
     const { shortfallLiquidity } = await this.deployments.balanceSheet.getCurrentAccountLiquidity(account);
     return shortfallLiquidity.gt(0);
@@ -98,7 +87,7 @@ export class Bot {
           for (const collateral of collaterals) {
             const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
             const swapAmount = debtAmount.div(underlyingPrecisionScalar);
-            if (swapAmount.gt(0) && (await this.isLiquidatable(account, collateral, bond))) {
+            if (swapAmount.gt(0) && (await this.isUnderwater(account))) {
               // TODO: check rest of collateral is still claimable after a partial liquidation
               const { pair, token0, token1 } = getUniswapV2PairInfo({
                 factoryAddress: this.network.uniswap.factory,
@@ -132,7 +121,9 @@ export class Bot {
                 const tx = await contract.swap(...swapArgs);
                 const receipt = await tx.wait(1);
                 log("Submitted liquidation at hash: %s", receipt.transactionHash);
-              } catch (e) {}
+              } catch (e) {
+                console.log(e);
+              }
             }
           }
         }
