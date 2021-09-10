@@ -8,15 +8,11 @@ import { isTrueSet } from "./helpers";
 
 require("dotenv").config();
 
-const {
-  ALCHEMY_KEY,
-  PERSISTENCE = "true",
-  SELECTED_ACCOUNT = "0",
-  SILENT_MODE,
-  WALLET_SEED,
-} = process.env as { [key: string]: string };
+const { ALCHEMY_KEY, PERSISTENCE, SELECTED_ACCOUNT, SILENT_MODE, WALLET_SEED } = process.env as {
+  [key: string]: string;
+};
 
-const { NETWORK_NAME = "matic" } = process.env as { NETWORK_NAME: NetworkName };
+const { NETWORK_NAME } = process.env as { NETWORK_NAME: NetworkName };
 
 const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
 
