@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import { Contract, Event, EventFilter, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
 
@@ -46,9 +48,12 @@ export function getUniswapV2PairInfo({
   return { token0, token1, pair };
 }
 
-export function initDb(persistent: boolean) {
+export function initDb(persistent: boolean, name: string) {
   if (persistent) {
-    return new StormDB(new StormDB.localFileEngine("db.json"));
+    if (!fs.existsSync("db")) {
+      fs.mkdirSync("db");
+    }
+    return new StormDB(new StormDB.localFileEngine("db/" + name + ".json"));
   } else {
     const mem: { data: any } = { data: [] };
     return {
