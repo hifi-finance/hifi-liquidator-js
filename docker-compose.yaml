@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  hifi-liquidator-js:
+    build: .
+    environment:
+      ALCHEMY_KEY: $ALCHEMY_KEY
+      NETWORK_NAME: ${NETWORK_NAME:-matic}
+      PERSISTENCE: ${PERSISTENCE:-true}
+      SELECTED_ACCOUNT: ${SELECTED_ACCOUNT:-0}
+      SILENT_MODE: ${SILENT_MODE:-false}
+      WALLET_SEED: $WALLET_SEED
+    volumes:
+      - type: volume
+        source: db
+        target: /bot/db
+        read_only: false
+        volume:
+          nocopy: true
+volumes:
+  db:
