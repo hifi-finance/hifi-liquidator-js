@@ -28,7 +28,7 @@ export class Bot {
   private silentMode;
 
   constructor(args: Args) {
-    this.db = initDb(args.persistence);
+    this.db = initDb(args.persistence, args.provider.network.name);
     this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.network = args.network;
     this.persistence = args.persistence;

@@ -6,11 +6,11 @@
 !.yarn/sdks
 !.yarn/versions
 build/
+db/
 dist/
 node_modules/
 
 # files
-db.json
 *.env
 *.log
 *.tsbuildinfo
