@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 services:
   hifi-liquidator-js:
     build: .
@@ -10,11 +10,6 @@ services:
       SILENT_MODE: ${SILENT_MODE:-false}
       WALLET_SEED: $WALLET_SEED
     volumes:
-      - type: volume
-        source: db
-        target: /bot/db
-        read_only: false
-        volume:
-          nocopy: true
+      - db:/bot/db
 volumes:
   db:

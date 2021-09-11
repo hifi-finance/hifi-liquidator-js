@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: hifi-liquidator-js
+  name: hifi-liquidator-js
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: hifi-liquidator-js
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: hifi-liquidator-js
+    spec:
+      containers:
+        - env:
+            - name: ALCHEMY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: hifi-liquidator-js-secret
+                  key: alchemy-key
+            - name: NETWORK_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: network-name
+            - name: PERSISTENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: persistence
+            - name: SELECTED_ACCOUNT
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: selected-account
+            - name: SILENT_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: silent-mode
+            - name: WALLET_SEED
+              valueFrom:
+                secretKeyRef:
+                  name: hifi-liquidator-js-secret
+                  key: wallet-seed
+          image: hifi-liquidator-js
+          name: hifi-liquidator-js
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+            requests:
+              cpu: "0.25"
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /bot/db
+              name: db
+      restartPolicy: Always
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: db
+status: {}
