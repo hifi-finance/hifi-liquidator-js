@@ -712,7 +712,7 @@ __metadata:
     "@commitlint/cli": ^13.1.0
     "@commitlint/config-conventional": ^13.1.0
     "@hifi/flash-swap": ^1.3.1
-    "@hifi/protocol": ^1.4.0
+    "@hifi/protocol": ^1.5.0
     "@types/node": ^16.6.1
     "@typescript-eslint/eslint-plugin": ^4.29.2
     "@typescript-eslint/parser": ^4.29.2
@@ -733,7 +733,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hifi/protocol@npm:1.4.0, @hifi/protocol@npm:^1.4.0":
+"@hifi/protocol@npm:1.4.0":
   version: 1.4.0
   resolution: "@hifi/protocol@npm:1.4.0"
   dependencies:
@@ -747,6 +747,23 @@ __metadata:
     ethers: ^5.4.4
     prb-math: 2.2.0
   checksum: e126b68c3ed016e0cb2b9a419c890faed7fb2cd44ea0a12eac56a869f0e9def308286a26f4470d792ed789f5a13a8684dad3074dddb584102f9782e43df4cd08
+  languageName: node
+  linkType: hard
+
+"@hifi/protocol@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@hifi/protocol@npm:1.5.0"
+  dependencies:
+    "@openzeppelin/contracts-upgradeable": 4.3.1
+    "@paulrberg/contracts": 3.5.2
+    ethers: ^5.4.6
+    prb-math: 2.2.0
+  peerDependencies:
+    "@openzeppelin/contracts-upgradeable": 4.2.0
+    "@paulrberg/contracts": 3.5.2
+    ethers: ^5.4.4
+    prb-math: 2.2.0
+  checksum: d6045bd405717fce33f351ad2ed3bc292b73817f8e2c217160ee3ee129511e0d257c30de75dc92f8f178fff3849e6a4f0eab78d0a122c24de87ea79b65930f26
   languageName: node
   linkType: hard
 
@@ -802,6 +819,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openzeppelin/contracts-upgradeable@npm:4.3.1":
+  version: 4.3.1
+  resolution: "@openzeppelin/contracts-upgradeable@npm:4.3.1"
+  checksum: b28fd7cbd40b640add82d8b1b01d26994d9c3e411c3d2e7858f3865aefc2a4ab9e3aec8fe1db22f61e959b740fb40202dc28d0d9252534aad2271239cce3629a
+  languageName: node
+  linkType: hard
+
 "@paulrberg/contracts@npm:3.4.0":
   version: 3.4.0
   resolution: "@paulrberg/contracts@npm:3.4.0"
@@ -810,6 +834,17 @@ __metadata:
   peerDependencies:
     prb-math: ^2.2.0
   checksum: eb84aab04bd5deeff5ec74030355b095f5ef375b4719cf1df8e4adb7321e036e27eb03c477347135659761e5e4ebb2c826af4744df6f297923bdf33fdffda55a
+  languageName: node
+  linkType: hard
+
+"@paulrberg/contracts@npm:3.5.2":
+  version: 3.5.2
+  resolution: "@paulrberg/contracts@npm:3.5.2"
+  dependencies:
+    prb-math: ^2.2.0
+  peerDependencies:
+    prb-math: ^2.2.0
+  checksum: 1ce4da9edca78318ae4665126e49e4f305938b945e62c6030a504940f7bc1dc3dc886daf6106c980ebb964726e6c207c3ac6902e1bc41325631af6f442a47431
   languageName: node
   linkType: hard
 

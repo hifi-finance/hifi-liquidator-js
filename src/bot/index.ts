@@ -82,10 +82,11 @@ export class Bot {
     for (const account of accounts) {
       const { bonds, collaterals } = vaults[account];
       if (await this.isUnderwater(account)) {
-        for (const bond of bonds) {
+        liquidateAccount: for (const bond of bonds) {
           const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
           for (const collateral of collaterals) {
-            const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
+            const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
+            const debtAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = debtAmount.div(underlyingPrecisionScalar);
             if (swapAmount.gt(0) && (await this.isUnderwater(account))) {
               // TODO: check rest of collateral is still claimable after a partial liquidation
@@ -124,6 +125,8 @@ export class Bot {
               } catch (e) {
                 console.log(e);
               }
+            } else {
+              break liquidateAccount;
             }
           }
         }
@@ -134,6 +137,7 @@ export class Bot {
   public async run(): Promise<void> {
     if (!this.silentMode) {
       log("Starting Hifi liquidator");
+      log("Network: %s", this.provider.network.name);
       log("Profits will be sent to %s", await this.signer.getAddress());
       log("Data persistence is enabled: %s", this.persistence);
       log("BalanceSheet: %s", this.network.contracts.balanceSheet);
