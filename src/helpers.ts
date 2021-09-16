@@ -2,7 +2,6 @@ import * as fs from "fs";
 
 import { Contract, Event, EventFilter, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
-
 import StormDB from "stormdb";
 
 export function addressesAreEqual(address0: string, address1: string) {
