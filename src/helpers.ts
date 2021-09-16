@@ -98,15 +98,15 @@ export class Logger {
   }
 
   // public methods
-  public static async error(...message: any[]) {
-    await Logger.log("error", message);
-  }
-
   public static async info(...message: any[]) {
     await Logger.log("info", message);
   }
 
   public static async notice(...message: any[]) {
     await Logger.log("notice", message);
+  }
+
+  public static async warning(...message: any[]) {
+    await Logger.log("warning", message);
   }
 }

@@ -112,7 +112,7 @@ export class Bot {
                 const receipt = await tx.wait(1);
                 Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
               } catch (e) {
-                Logger.error(e);
+                Logger.warning(e);
               }
             } else {
               break liquidateAccount;
