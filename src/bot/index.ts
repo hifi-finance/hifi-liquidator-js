@@ -6,12 +6,9 @@ import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/Balance
 import { HToken } from "@hifi/protocol/typechain/HToken";
 import { BigNumberish, Contract, utils } from "ethers";
 
-import { addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
+import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { Args, Db, Htokens, Vault, Vaults } from "./types";
-
-// TODO: replace with improved logging/cloud logging
-const log = console.log;
 
 export class Bot {
   private db: Db;
@@ -113,9 +110,9 @@ export class Bot {
                 // TODO: profitibility calculation (including gas)
                 const tx = await contract.swap(...swapArgs);
                 const receipt = await tx.wait(1);
-                log("Submitted liquidation at hash: %s", receipt.transactionHash);
+                Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
               } catch (e) {
-                console.log(e);
+                Logger.error(e);
               }
             } else {
               break liquidateAccount;
@@ -128,19 +125,19 @@ export class Bot {
 
   public async run(): Promise<void> {
     if (!this.silentMode) {
-      log("Starting Hifi liquidator");
-      log("Network: %s", this.provider.network.name);
-      log("Profits will be sent to %s", await this.signer.getAddress());
-      log("Data persistence is enabled: %s", this.persistence);
-      log("BalanceSheet: %s", this.network.contracts.balanceSheet);
-      log("HTokens: %s", this.network.contracts.htokens);
-      log("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
+      Logger.info("Starting Hifi liquidator");
+      Logger.info("Network: %s", this.provider.network.name);
+      Logger.info("Profits will be sent to %s", await this.signer.getAddress());
+      Logger.info("Data persistence is enabled: %s", this.persistence);
+      Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
+      Logger.info("HTokens: %s", this.network.contracts.htokens);
+      Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
     }
 
     await this.syncAll();
     this.provider.on("block", async blockNumber => {
       if (!this.silentMode) {
-        log("Block #%s", blockNumber);
+        Logger.info("Block #%s", blockNumber);
       }
       await this.syncAll(blockNumber);
       await this.liquidateAllUnderwater();
@@ -148,7 +145,7 @@ export class Bot {
   }
 
   public stop(): void {
-    log("Stopping Hifi liquidator");
+    Logger.info("Stopping Hifi liquidator");
     this.provider.removeAllListeners();
   }
 
@@ -170,10 +167,10 @@ export class Bot {
     );
     if (!this.silentMode) {
       if (borrowEvents.length > 0) {
-        log("Captured %s borrow event(s)", borrowEvents.length);
+        Logger.info("Captured %s borrow event(s)", borrowEvents.length);
       }
       if (depositEvents.length > 0) {
-        log("Captured %s deposit event(s)", depositEvents.length);
+        Logger.info("Captured %s deposit event(s)", depositEvents.length);
       }
     }
     // event decoding/processing
