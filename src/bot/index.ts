@@ -1,6 +1,4 @@
-import { abi as HifiFlashUniswapAbi } from "@hifi/flash-swap/artifacts/HifiFlashUniswapV2.json";
 import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pair.json";
-import { HifiFlashUniswapV2 as HifiFlashSwap } from "@hifi/flash-swap/typechain/HifiFlashUniswapV2";
 import { IUniswapV2Pair as UniswapV2Pair } from "@hifi/flash-swap/typechain/IUniswapV2Pair";
 import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.json";
 import { abi as HTokenAbi } from "@hifi/protocol/artifacts/HToken.json";
@@ -19,7 +17,6 @@ export class Bot {
   private db: Db;
   private deployments: {
     balanceSheet: BalanceSheet;
-    hifiFlashSwap: HifiFlashSwap;
   };
   private network;
   private persistence;
@@ -38,11 +35,6 @@ export class Bot {
 
     this.deployments = {
       balanceSheet: new Contract(this.network.contracts.balanceSheet, BalanceSheetAbi, this.signer) as BalanceSheet,
-      hifiFlashSwap: new Contract(
-        this.network.contracts.hifiFlashSwap,
-        HifiFlashUniswapAbi,
-        this.signer,
-      ) as HifiFlashSwap,
     };
   }
 
