@@ -56,7 +56,7 @@ spec:
                 secretKeyRef:
                   name: hifi-liquidator-js-secret
                   key: wallet-seed
-          image: hifi-liquidator-js
+          image: hififinance/hifi-liquidator-js:1.0.0
           name: hifi-liquidator-js
           resources:
             limits:
