@@ -77,45 +77,46 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const debtAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = debtAmount.div(underlyingPrecisionScalar);
-            if (swapAmount.gt(0) && (await this.isUnderwater(account))) {
-              // TODO: check rest of collateral is still claimable after a partial liquidation
-              const { pair, token0, token1 } = getUniswapV2PairInfo({
-                factoryAddress: this.network.uniswap.factory,
-                initCodeHash: this.network.uniswap.initCodeHash,
-                tokenA: collateral,
-                tokenB: underlying,
-              });
-              const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
-              // TODO: liquidate collateral(s) of underwater borrow position
-              // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
-              // TODO: profitibility calculation for liquidation
-              // TODO: pop the collateral from persistence list after liquidation
-              const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-                addressesAreEqual(token0, underlying) ? swapAmount : 0,
-                addressesAreEqual(token1, underlying) ? swapAmount : 0,
-                this.network.contracts.hifiFlashSwap,
-                utils.defaultAbiCoder.encode(
-                  ["tuple(address borrower, address bond, uint256 minProfit)"],
-                  [
-                    {
-                      borrower: account,
-                      bond: bond,
-                      minProfit: "0",
-                    },
-                  ],
-                ),
-              ];
-              try {
-                const g = await contract.estimateGas.swap(...swapArgs);
-                // TODO: profitibility calculation (including gas)
-                const tx = await contract.swap(...swapArgs);
-                const receipt = await tx.wait(1);
-                Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-              } catch (e) {
-                Logger.warning(e);
+            if (swapAmount.gt(0)) {
+              if (await this.isUnderwater(account)) {
+                const { pair, token0, token1 } = getUniswapV2PairInfo({
+                  factoryAddress: this.network.uniswap.factory,
+                  initCodeHash: this.network.uniswap.initCodeHash,
+                  tokenA: collateral,
+                  tokenB: underlying,
+                });
+                const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+                // TODO: liquidate collateral(s) of underwater borrow position
+                // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
+                // TODO: profitibility calculation for liquidation
+                // TODO: pop the collateral from persistence list after liquidation
+                const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+                  addressesAreEqual(token0, underlying) ? swapAmount : 0,
+                  addressesAreEqual(token1, underlying) ? swapAmount : 0,
+                  this.network.contracts.hifiFlashSwap,
+                  utils.defaultAbiCoder.encode(
+                    ["tuple(address borrower, address bond, uint256 minProfit)"],
+                    [
+                      {
+                        borrower: account,
+                        bond: bond,
+                        minProfit: "0",
+                      },
+                    ],
+                  ),
+                ];
+                try {
+                  const g = await contract.estimateGas.swap(...swapArgs);
+                  // TODO: profitibility calculation (including gas)
+                  const tx = await contract.swap(...swapArgs);
+                  const receipt = await tx.wait(1);
+                  Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+                } catch (e) {
+                  Logger.warning(e);
+                }
+              } else {
+                break liquidateAccount;
               }
-            } else {
-              break liquidateAccount;
             }
           }
         }
