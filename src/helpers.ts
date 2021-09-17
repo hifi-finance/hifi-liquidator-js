@@ -85,7 +85,7 @@ export class Logger {
       transports.push(new LoggingWinston());
     }
     Logger.instance = winston.createLogger({
-      level: "info",
+      levels: winston.config.syslog.levels,
       transports,
     });
   }
