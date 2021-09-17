@@ -1,10 +1,8 @@
 import * as fs from "fs";
 import { format } from "util";
 
-import { LoggingWinston } from "@google-cloud/logging-winston";
 import { Contract, Event, EventFilter, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
-import * as gcpMetadata from "gcp-metadata";
 import StormDB from "stormdb";
 import * as winston from "winston";
 
@@ -79,20 +77,16 @@ export class Logger {
   private static instance: winston.Logger | null = null;
 
   // private methods
-  private static async init() {
-    const transports: winston.transport[] = [new winston.transports.Console()];
-    if (await gcpMetadata.isAvailable()) {
-      transports.push(new LoggingWinston());
-    }
+  private static init() {
     Logger.instance = winston.createLogger({
       levels: winston.config.syslog.levels,
-      transports,
+      transports: [new winston.transports.Console()],
     });
   }
 
   private static async log(level: string, message: any[]) {
     while (Logger.instance === null) {
-      await Logger.init();
+      Logger.init();
     }
     Logger.instance.log(level, format(...message));
   }
