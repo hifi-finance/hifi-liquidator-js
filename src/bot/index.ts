@@ -77,7 +77,7 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const debtAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = debtAmount.div(underlyingPrecisionScalar);
-            if (swapAmount.gt(0)) {
+            if (swapAmount.gt(0) && !addressesAreEqual(collateral, underlying)) {
               if (await this.isUnderwater(account)) {
                 const { pair, token0, token1 } = getUniswapV2PairInfo({
                   factoryAddress: this.network.uniswap.factory,
@@ -140,6 +140,7 @@ export class Bot {
       if (!this.silentMode) {
         Logger.info("Block #%s", blockNumber);
       }
+      // TODO: don't report new blocks till callback finishes
       await this.syncAll(blockNumber);
       await this.liquidateAllUnderwater();
     });
