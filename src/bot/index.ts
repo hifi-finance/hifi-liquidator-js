@@ -15,6 +15,7 @@ export class Bot {
   private deployments: {
     balanceSheet: BalanceSheet;
   };
+  private isBusy;
   private network;
   private persistence;
   private provider;
@@ -24,6 +25,7 @@ export class Bot {
   constructor(args: Args) {
     this.db = initDb(args.persistence, args.provider.network.name);
     this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
+    this.isBusy = false;
     this.network = args.network;
     this.persistence = args.persistence;
     this.provider = args.provider;
@@ -77,7 +79,7 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const debtAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = debtAmount.div(underlyingPrecisionScalar);
-            if (swapAmount.gt(0) && !addressesAreEqual(collateral, underlying)) {
+            if (swapAmount.gt(500) && !addressesAreEqual(collateral, underlying)) {
               if (await this.isUnderwater(account)) {
                 const { pair, token0, token1 } = getUniswapV2PairInfo({
                   factoryAddress: this.network.uniswap.factory,
@@ -137,12 +139,16 @@ export class Bot {
 
     await this.syncAll();
     this.provider.on("block", async blockNumber => {
-      if (!this.silentMode) {
-        Logger.info("Block #%s", blockNumber);
+      if (!this.isBusy) {
+        this.isBusy = true;
+        if (!this.silentMode) {
+          Logger.info("Block #%s", blockNumber);
+        }
+        // TODO: don't report new blocks till callback finishes
+        await this.syncAll(blockNumber);
+        await this.liquidateAllUnderwater();
+        this.isBusy = false;
       }
-      // TODO: don't report new blocks till callback finishes
-      await this.syncAll(blockNumber);
-      await this.liquidateAllUnderwater();
     });
   }
 
