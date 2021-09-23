@@ -88,8 +88,6 @@ export class Bot {
                   tokenB: underlying,
                 });
                 const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
-                // TODO: liquidate collateral(s) of underwater borrow position
-                // TODO: decide on liquidation strategy (one collateral part or whole vault liquidation)
                 // TODO: profitibility calculation for liquidation
                 // TODO: pop the collateral from persistence list after liquidation
                 const swapArgs: [BigNumberish, BigNumberish, string, string] = [
@@ -108,8 +106,8 @@ export class Bot {
                   ),
                 ];
                 try {
-                  const g = await contract.estimateGas.swap(...swapArgs);
                   // TODO: profitibility calculation (including gas)
+                  // const g = await contract.estimateGas.swap(...swapArgs);
                   const tx = await contract.swap(...swapArgs);
                   const receipt = await tx.wait(1);
                   Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
@@ -144,7 +142,6 @@ export class Bot {
         if (!this.silentMode) {
           Logger.info("Block #%s", blockNumber);
         }
-        // TODO: don't report new blocks till callback finishes
         await this.syncAll(blockNumber);
         await this.liquidateAllUnderwater();
         this.isBusy = false;
