@@ -2,12 +2,7 @@
   "matic": {
     "contracts": {
       "balanceSheet": "0x70cCDBE39bb8874155af29BEEB7A05ba08A75226",
-      "hifiFlashSwap": "0x7D4983c005075045E0762345d0EA681c4d57F8eF",
-      "htokens": [
-        "0x1286c3850e3b0b45d887287044d9F224E8AAEad6",
-        "0x9d56ddda96898Dc19Efd6Fc2EF553c9d58B428e9",
-        "0xFf14D868fa6F5CD8b4c5DE6E67Ca646feC073A18"
-      ]
+      "hifiFlashSwap": "0x7D4983c005075045E0762345d0EA681c4d57F8eF"
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
@@ -17,14 +12,13 @@
   },
   "rinkeby": {
     "contracts": {
-      "balanceSheet": "0xdB14cF9B3D0601A24ceE6fEDea538b750093acB5",
-      "hifiFlashSwap": "0xCa1833e72A8fce27d24a27B0B6D50e0A74520544",
-      "htokens": ["0x32eE055655fDc08919c18D0b024a3aD4AC9A5c85"]
+      "balanceSheet": "0xfe6E92a567565fCB19d850B147DC8af7Ec273c35",
+      "hifiFlashSwap": "0xB66Ec3096cFA34cBFBaA0815bd583D38C344f586"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
       "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
     },
-    "startBlock": 9302807
+    "startBlock": 9349804
   }
 }
