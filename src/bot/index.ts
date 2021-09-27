@@ -131,7 +131,6 @@ export class Bot {
       Logger.info("Profits will be sent to %s", await this.signer.getAddress());
       Logger.info("Data persistence is enabled: %s", this.persistence);
       Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
-      Logger.info("HTokens: %s", this.network.contracts.htokens);
       Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
     }
 

@@ -5,7 +5,6 @@ export type Args = {
     contracts: {
       balanceSheet: string;
       hifiFlashSwap: string;
-      htokens: string[];
     };
     uniswap: {
       factory: string;
