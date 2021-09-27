@@ -77,8 +77,8 @@ export class Bot {
           const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
           for (const collateral of collaterals) {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
-            const debtAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
-            const swapAmount = debtAmount.div(underlyingPrecisionScalar);
+            const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
+            const swapAmount = repayAmount.div(underlyingPrecisionScalar);
             if (swapAmount.gt(500) && !addressesAreEqual(collateral, underlying)) {
               if (await this.isUnderwater(account)) {
                 const { pair, token0, token1 } = getUniswapV2PairInfo({
