@@ -79,14 +79,18 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = repayAmount.div(underlyingPrecisionScalar);
-            if (swapAmount.gt(500) && !addressesAreEqual(collateral, underlying)) {
+            const { pair, token0, token1 } = getUniswapV2PairInfo({
+              factoryAddress: this.network.uniswap.factory,
+              initCodeHash: this.network.uniswap.initCodeHash,
+              tokenA: collateral,
+              tokenB: underlying,
+            });
+            if (
+              swapAmount.gt(0) &&
+              !addressesAreEqual(collateral, underlying) &&
+              (await this.provider.getCode(pair)) !== "0x"
+            ) {
               if (await this.isUnderwater(account)) {
-                const { pair, token0, token1 } = getUniswapV2PairInfo({
-                  factoryAddress: this.network.uniswap.factory,
-                  initCodeHash: this.network.uniswap.initCodeHash,
-                  tokenA: collateral,
-                  tokenB: underlying,
-                });
                 const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
                 // TODO: profitibility calculation for liquidation
                 // TODO: pop the collateral from persistence list after liquidation
