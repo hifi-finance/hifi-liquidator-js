@@ -1,3 +1,3 @@
-# TypeScript Template
+# Hifi Multicollateral Liquidation Bot
 
-To be used when building a new TypeScript project from scratch.
+This liquidation bot enables anyone running it to detect and liquidate bad debt, ensuring that the protocol always stays solvent and stable.
