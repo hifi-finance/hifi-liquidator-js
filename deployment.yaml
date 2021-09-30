@@ -60,11 +60,11 @@ spec:
           name: hifi-liquidator-js
           resources:
             limits:
-              cpu: "0.5"
+              cpu: "0.25"
               memory: 512Mi
             requests:
-              cpu: "0.25"
-              memory: 256Mi
+              cpu: "0.05"
+              memory: 128Mi
           volumeMounts:
             - mountPath: /bot/db
               name: db
