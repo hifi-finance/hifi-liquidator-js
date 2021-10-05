@@ -30,6 +30,7 @@ export type Db = {
 
 export type Htokens = {
   [htoken: string]: {
+    maturity: number;
     underlying: string;
     underlyingPrecisionScalar: number;
   };

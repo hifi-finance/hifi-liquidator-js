@@ -4,7 +4,7 @@ import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.
 import { abi as HTokenAbi } from "@hifi/protocol/artifacts/HToken.json";
 import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
 import { HToken } from "@hifi/protocol/typechain/HToken";
-import { BigNumberish, Contract, utils } from "ethers";
+import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
@@ -56,14 +56,86 @@ export class Bot {
     const htokens = this.htokens();
     if (htokens[htoken] === undefined) {
       const contract = new Contract(htoken, HTokenAbi, this.signer) as HToken;
+      const maturity = (await contract.maturity()).toNumber();
       const underlying = await contract.underlying();
       const underlyingPrecisionScalar = (await contract.underlyingPrecisionScalar()).toNumber();
       htokens[htoken] = {
+        maturity,
         underlying,
         underlyingPrecisionScalar,
       };
       this.db.set(HTOKENS, htokens);
       await this.db.save();
+    }
+  }
+
+  // TODO: optimize for API limits
+  private async liquidateAllMature(_latestBlock: number): Promise<void> {
+    const vaults = this.vaults();
+    const accounts = Object.keys(vaults);
+    const htokens = Object.keys(this.htokens());
+    const { timestamp } = await this.provider.getBlock(_latestBlock);
+    for (const htoken of htokens) {
+      if (timestamp >= this.htokens()[htoken].maturity) {
+        for (const account of accounts) {
+          const { bonds, collaterals } = vaults[account];
+          if (bonds.includes(htoken)) {
+            const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
+            if (debtAmount.gt(0)) {
+              const { underlying, underlyingPrecisionScalar } = this.htokens()[htoken];
+              for (const collateral of collaterals) {
+                const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
+                const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
+                  collateral,
+                  collateralAmount,
+                  htoken,
+                );
+                const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
+                const swapAmount = repayAmount.div(underlyingPrecisionScalar);
+                const { pair, token0, token1 } = getUniswapV2PairInfo({
+                  factoryAddress: this.network.uniswap.factory,
+                  initCodeHash: this.network.uniswap.initCodeHash,
+                  tokenA: collateral,
+                  tokenB: underlying,
+                });
+                if (
+                  swapAmount.gt(0) &&
+                  !addressesAreEqual(collateral, underlying) &&
+                  (await this.provider.getCode(pair)) !== "0x"
+                ) {
+                  const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+                  // TODO: profitibility calculation for liquidation
+                  // TODO: pop the collateral from persistence list after liquidation
+                  const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+                    addressesAreEqual(token0, underlying) ? swapAmount : 0,
+                    addressesAreEqual(token1, underlying) ? swapAmount : 0,
+                    this.network.contracts.hifiFlashSwap,
+                    utils.defaultAbiCoder.encode(
+                      ["tuple(address borrower, address bond, uint256 minProfit)"],
+                      [
+                        {
+                          borrower: account,
+                          bond: htoken,
+                          minProfit: "0",
+                        },
+                      ],
+                    ),
+                  ];
+                  try {
+                    // TODO: profitibility calculation (including gas)
+                    // const g = await contract.estimateGas.swap(...swapArgs);
+                    const tx = await contract.swap(...swapArgs);
+                    const receipt = await tx.wait(1);
+                    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+                  } catch (e) {
+                    Logger.warning(e);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -147,6 +219,7 @@ export class Bot {
         }
         await this.syncAll(blockNumber);
         await this.liquidateAllUnderwater();
+        await this.liquidateAllMature(blockNumber);
         this.isBusy = false;
       }
     });
