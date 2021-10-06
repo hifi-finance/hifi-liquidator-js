@@ -69,20 +69,28 @@ export class Bot {
     }
   }
 
-  // TODO: optimize for API limits
+  private async clearHtoken(htoken: string): Promise<void> {
+    const htokens = this.htokens();
+    if (htokens[htoken] !== undefined) {
+      delete htokens[htoken];
+      this.db.set(HTOKENS, htokens);
+      await this.db.save();
+    }
+  }
+
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
     const vaults = this.vaults();
     const accounts = Object.keys(vaults);
-    const htokens = Object.keys(this.htokens());
+    const htokens = this.htokens();
     const { timestamp } = await this.provider.getBlock(_latestBlock);
-    for (const htoken of htokens) {
-      if (timestamp >= this.htokens()[htoken].maturity) {
+    for (const htoken in htokens) {
+      if (timestamp >= htokens[htoken].maturity) {
         for (const account of accounts) {
           const { bonds, collaterals } = vaults[account];
           if (bonds.includes(htoken)) {
             const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
             if (debtAmount.gt(0)) {
-              const { underlying, underlyingPrecisionScalar } = this.htokens()[htoken];
+              const { underlying, underlyingPrecisionScalar } = htokens[htoken];
               for (const collateral of collaterals) {
                 const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
                 const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
@@ -133,8 +141,10 @@ export class Bot {
                 }
               }
             }
+            await this.updateVaults(account, "pop", { bonds: htoken });
           }
         }
+        await this.clearHtoken(htoken);
       }
     }
   }
