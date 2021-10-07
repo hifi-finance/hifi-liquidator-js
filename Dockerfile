@@ -8,4 +8,4 @@ COPY ./src ./src
 COPY ./tsconfig.json ./tsconfig.json
 COPY ./tsconfig.prod.json ./tsconfig.prod.json
 RUN yarn build
-ENTRYPOINT yarn start
+ENTRYPOINT yarn start --unhandled-rejections=strict
