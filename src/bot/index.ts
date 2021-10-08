@@ -78,6 +78,55 @@ export class Bot {
     }
   }
 
+  private async liquidate(
+    account: string,
+    bond: string,
+    collateral: string,
+    swapAmount: BigNumber,
+    underlying: string,
+  ): Promise<void> {
+    const { pair, token0, token1 } = getUniswapV2PairInfo({
+      factoryAddress: this.network.uniswap.factory,
+      initCodeHash: this.network.uniswap.initCodeHash,
+      tokenA: collateral,
+      tokenB: underlying,
+    });
+    // TODO: split condition
+    if (
+      swapAmount.gt(0) &&
+      !addressesAreEqual(collateral, underlying) &&
+      (await this.provider.getCode(pair)) !== "0x"
+    ) {
+      const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+      // TODO: profitibility calculation for liquidation
+      // TODO: pop the collateral from persistence list after liquidation
+      const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+        addressesAreEqual(token0, underlying) ? swapAmount : 0,
+        addressesAreEqual(token1, underlying) ? swapAmount : 0,
+        this.network.contracts.hifiFlashSwap,
+        utils.defaultAbiCoder.encode(
+          ["tuple(address borrower, address bond, uint256 minProfit)"],
+          [
+            {
+              borrower: account,
+              bond: bond,
+              minProfit: "0",
+            },
+          ],
+        ),
+      ];
+      try {
+        // TODO: profitibility calculation (including gas)
+        // const g = await contract.estimateGas.swap(...swapArgs);
+        const tx = await contract.swap(...swapArgs);
+        const receipt = await tx.wait(1);
+        Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+      } catch (e) {
+        Logger.warning(e);
+      }
+    }
+  }
+
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
     const vaults = this.vaults();
     const accounts = Object.keys(vaults);
@@ -100,45 +149,7 @@ export class Bot {
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
                 const swapAmount = repayAmount.div(underlyingPrecisionScalar);
-                const { pair, token0, token1 } = getUniswapV2PairInfo({
-                  factoryAddress: this.network.uniswap.factory,
-                  initCodeHash: this.network.uniswap.initCodeHash,
-                  tokenA: collateral,
-                  tokenB: underlying,
-                });
-                if (
-                  swapAmount.gt(0) &&
-                  !addressesAreEqual(collateral, underlying) &&
-                  (await this.provider.getCode(pair)) !== "0x"
-                ) {
-                  const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
-                  // TODO: profitibility calculation for liquidation
-                  // TODO: pop the collateral from persistence list after liquidation
-                  const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-                    addressesAreEqual(token0, underlying) ? swapAmount : 0,
-                    addressesAreEqual(token1, underlying) ? swapAmount : 0,
-                    this.network.contracts.hifiFlashSwap,
-                    utils.defaultAbiCoder.encode(
-                      ["tuple(address borrower, address bond, uint256 minProfit)"],
-                      [
-                        {
-                          borrower: account,
-                          bond: htoken,
-                          minProfit: "0",
-                        },
-                      ],
-                    ),
-                  ];
-                  try {
-                    // TODO: profitibility calculation (including gas)
-                    // const g = await contract.estimateGas.swap(...swapArgs);
-                    const tx = await contract.swap(...swapArgs);
-                    const receipt = await tx.wait(1);
-                    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-                  } catch (e) {
-                    Logger.warning(e);
-                  }
-                }
+                await this.liquidate(account, htoken, collateral, swapAmount, underlying);
               }
             }
             await this.updateVaults(account, "pop", { bonds: htoken });
@@ -161,48 +172,10 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = repayAmount.div(underlyingPrecisionScalar);
-            const { pair, token0, token1 } = getUniswapV2PairInfo({
-              factoryAddress: this.network.uniswap.factory,
-              initCodeHash: this.network.uniswap.initCodeHash,
-              tokenA: collateral,
-              tokenB: underlying,
-            });
-            if (
-              swapAmount.gt(0) &&
-              !addressesAreEqual(collateral, underlying) &&
-              (await this.provider.getCode(pair)) !== "0x"
-            ) {
-              if (await this.isUnderwater(account)) {
-                const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
-                // TODO: profitibility calculation for liquidation
-                // TODO: pop the collateral from persistence list after liquidation
-                const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-                  addressesAreEqual(token0, underlying) ? swapAmount : 0,
-                  addressesAreEqual(token1, underlying) ? swapAmount : 0,
-                  this.network.contracts.hifiFlashSwap,
-                  utils.defaultAbiCoder.encode(
-                    ["tuple(address borrower, address bond, uint256 minProfit)"],
-                    [
-                      {
-                        borrower: account,
-                        bond: bond,
-                        minProfit: "0",
-                      },
-                    ],
-                  ),
-                ];
-                try {
-                  // TODO: profitibility calculation (including gas)
-                  // const g = await contract.estimateGas.swap(...swapArgs);
-                  const tx = await contract.swap(...swapArgs);
-                  const receipt = await tx.wait(1);
-                  Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-                } catch (e) {
-                  Logger.warning(e);
-                }
-              } else {
-                break liquidateAccount;
-              }
+            if (await this.isUnderwater(account)) {
+              await this.liquidate(account, bond, collateral, swapAmount, underlying);
+            } else {
+              break liquidateAccount;
             }
           }
         }
