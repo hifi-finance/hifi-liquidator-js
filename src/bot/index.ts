@@ -7,7 +7,7 @@ import { HToken } from "@hifi/protocol/typechain/HToken";
 import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
-import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
+import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { Args, Db, Htokens, Vault, Vaults } from "./types";
 
 export class Bot {
@@ -93,7 +93,7 @@ export class Bot {
     });
     // TODO: split condition
     if (
-      swapAmount.gt(0) &&
+      swapAmount.gt(DUST_EPSILON) &&
       !addressesAreEqual(collateral, underlying) &&
       (await this.provider.getCode(pair)) !== "0x"
     ) {
@@ -148,7 +148,7 @@ export class Bot {
                   htoken,
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-                const swapAmount = repayAmount.div(underlyingPrecisionScalar);
+                const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
                 await this.liquidate(account, htoken, collateral, swapAmount, underlying);
               }
             }
@@ -171,7 +171,7 @@ export class Bot {
           for (const collateral of collaterals) {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
-            const swapAmount = repayAmount.div(underlyingPrecisionScalar);
+            const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
             if (await this.isUnderwater(account)) {
               await this.liquidate(account, bond, collateral, swapAmount, underlying);
             } else {
