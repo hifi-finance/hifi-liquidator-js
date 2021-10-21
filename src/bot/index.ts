@@ -85,18 +85,16 @@ export class Bot {
     swapAmount: BigNumber,
     underlying: string,
   ): Promise<void> {
-    const { pair, token0, token1 } = getUniswapV2PairInfo({
-      factoryAddress: this.network.uniswap.factory,
-      initCodeHash: this.network.uniswap.initCodeHash,
-      tokenA: collateral,
-      tokenB: underlying,
-    });
+    const { pair, token0, token1 } = addressesAreEqual(collateral, underlying)
+      ? this.network.uniswap.underlyingPairs[underlying]
+      : getUniswapV2PairInfo({
+          factoryAddress: this.network.uniswap.factory,
+          initCodeHash: this.network.uniswap.initCodeHash,
+          tokenA: collateral,
+          tokenB: underlying,
+        });
     // TODO: split condition
-    if (
-      swapAmount.gt(DUST_EPSILON) &&
-      !addressesAreEqual(collateral, underlying) &&
-      (await this.provider.getCode(pair)) !== "0x"
-    ) {
+    if (swapAmount.gt(DUST_EPSILON) && (await this.provider.getCode(pair)) !== "0x") {
       const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
       // TODO: profitibility calculation for liquidation
       // TODO: pop the collateral from persistence list after liquidation
@@ -105,25 +103,21 @@ export class Bot {
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
         this.network.contracts.hifiFlashSwap,
         utils.defaultAbiCoder.encode(
-          ["tuple(address borrower, address bond, uint256 minProfit)"],
+          ["tuple(address borrower, address bond, uint8 repayType)"],
           [
             {
               borrower: account,
               bond: bond,
-              minProfit: "0",
+              repayType: addressesAreEqual(collateral, underlying) ? "0" : "1",
             },
           ],
         ),
       ];
-      try {
-        // TODO: profitibility calculation (including gas)
-        // const g = await contract.estimateGas.swap(...swapArgs);
-        const tx = await contract.swap(...swapArgs);
-        const receipt = await tx.wait(1);
-        Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-      } catch (e) {
-        Logger.warning(e);
-      }
+      // TODO: profitibility calculation (including gas)
+      // const g = await contract.estimateGas.swap(...swapArgs);
+      const tx = await contract.swap(...swapArgs);
+      const receipt = await tx.wait(1);
+      Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
     }
   }
 
