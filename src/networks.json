@@ -6,18 +6,32 @@
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
-      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f",
+      "underlyingPairs": {
+        "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174": {
+          "pair": "0x853Ee4b2A13f8a742d64C8F088bE7bA2131f670d",
+          "token0": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "token1": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
+        }
+      }
     },
     "startBlock": 18431897
   },
   "rinkeby": {
     "contracts": {
       "balanceSheet": "0xfe6E92a567565fCB19d850B147DC8af7Ec273c35",
-      "hifiFlashSwap": "0xB66Ec3096cFA34cBFBaA0815bd583D38C344f586"
+      "hifiFlashSwap": "0x2eB755c4644B377e330624711A742db549f04cce"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
-      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f",
+      "underlyingPairs": {
+        "0x1Eea97bE3e3a291135794c6417AD54109004FdC6": {
+          "pair": "0x28F095098395955B9A46a50A140B48c4De55fF84",
+          "token0": "0x03AF85872ed51d0b7C919410eAfd3C00CDFA3E54",
+          "token1": "0x1Eea97bE3e3a291135794c6417AD54109004FdC6"
+        }
+      }
     },
     "startBlock": 9349804
   }
