@@ -94,7 +94,7 @@ export class Bot {
           tokenB: underlying,
         });
     // TODO: split condition
-    if (swapAmount.gt(DUST_EPSILON) && (await this.provider.getCode(pair)) !== "0x") {
+    if ((await this.provider.getCode(pair)) !== "0x") {
       const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
       // TODO: profitibility calculation for liquidation
       // TODO: pop the collateral from persistence list after liquidation
@@ -136,6 +136,7 @@ export class Bot {
               const { underlying, underlyingPrecisionScalar } = htokens[htoken];
               for (const collateral of collaterals) {
                 const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
+                const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
                 const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
                   collateral,
                   collateralAmount,
@@ -143,7 +144,9 @@ export class Bot {
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
                 const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
-                await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                if (repayAmount.gt(0)) {
+                  await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                }
               }
             }
             await this.updateVaults(account, "pop", { bonds: htoken });
@@ -166,7 +169,7 @@ export class Bot {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
             const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
-            if (await this.isUnderwater(account)) {
+            if ((await this.isUnderwater(account)) && repayAmount.gt(0)) {
               await this.liquidate(account, bond, collateral, swapAmount, underlying);
             } else {
               break liquidateAccount;
