@@ -7,7 +7,6 @@ services:
       NETWORK_NAME: ${NETWORK_NAME:-matic}
       PERSISTENCE: ${PERSISTENCE:-true}
       SELECTED_ACCOUNT: ${SELECTED_ACCOUNT:-0}
-      SILENT_MODE: ${SILENT_MODE:-false}
       WALLET_SEED: $WALLET_SEED
     volumes:
       - db:/bot/db

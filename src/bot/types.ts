@@ -16,7 +16,6 @@ export type Args = {
   persistence: boolean;
   provider: Provider;
   signer: Wallet;
-  silentMode: boolean;
 };
 
 export type Db = {
