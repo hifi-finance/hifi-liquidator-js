@@ -20,7 +20,7 @@
   "rinkeby": {
     "contracts": {
       "balanceSheet": "0xfe6E92a567565fCB19d850B147DC8af7Ec273c35",
-      "hifiFlashSwap": "0x2eB755c4644B377e330624711A742db549f04cce"
+      "hifiFlashSwap": "0x665435C1501C6E1A0Eef611a2cD13614d66421De"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
