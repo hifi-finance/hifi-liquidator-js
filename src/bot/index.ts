@@ -7,7 +7,7 @@ import { HToken } from "@hifi/protocol/typechain/HToken";
 import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
-import { HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
+import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { Args, Db, Htokens, Vault, Vaults } from "./types";
 
 export class Bot {
@@ -85,18 +85,16 @@ export class Bot {
     swapAmount: BigNumber,
     underlying: string,
   ): Promise<void> {
-    const { pair, token0, token1 } = getUniswapV2PairInfo({
-      factoryAddress: this.network.uniswap.factory,
-      initCodeHash: this.network.uniswap.initCodeHash,
-      tokenA: collateral,
-      tokenB: underlying,
-    });
+    const { pair, token0, token1 } = addressesAreEqual(collateral, underlying)
+      ? this.network.uniswap.underlyingPairs[underlying]
+      : getUniswapV2PairInfo({
+          factoryAddress: this.network.uniswap.factory,
+          initCodeHash: this.network.uniswap.initCodeHash,
+          tokenA: collateral,
+          tokenB: underlying,
+        });
     // TODO: split condition
-    if (
-      swapAmount.gt(0) &&
-      !addressesAreEqual(collateral, underlying) &&
-      (await this.provider.getCode(pair)) !== "0x"
-    ) {
+    if ((await this.provider.getCode(pair)) !== "0x") {
       const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
       // TODO: profitibility calculation for liquidation
       // TODO: pop the collateral from persistence list after liquidation
@@ -105,25 +103,21 @@ export class Bot {
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
         this.network.contracts.hifiFlashSwap,
         utils.defaultAbiCoder.encode(
-          ["tuple(address borrower, address bond, uint256 minProfit)"],
+          ["tuple(address borrower, address bond, uint8 repayType)"],
           [
             {
               borrower: account,
               bond: bond,
-              minProfit: "0",
+              repayType: addressesAreEqual(collateral, underlying) ? "0" : "1",
             },
           ],
         ),
       ];
-      try {
-        // TODO: profitibility calculation (including gas)
-        // const g = await contract.estimateGas.swap(...swapArgs);
-        const tx = await contract.swap(...swapArgs);
-        const receipt = await tx.wait(1);
-        Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-      } catch (e) {
-        Logger.warning(e);
-      }
+      // TODO: profitibility calculation (including gas)
+      // const g = await contract.estimateGas.swap(...swapArgs);
+      const tx = await contract.swap(...swapArgs);
+      const receipt = await tx.wait(1);
+      Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
     }
   }
 
@@ -142,14 +136,17 @@ export class Bot {
               const { underlying, underlyingPrecisionScalar } = htokens[htoken];
               for (const collateral of collaterals) {
                 const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
+                const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
                 const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
                   collateral,
                   collateralAmount,
                   htoken,
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-                const swapAmount = repayAmount.div(underlyingPrecisionScalar);
-                await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+                if (repayAmount.gt(0)) {
+                  await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                }
               }
             }
             await this.updateVaults(account, "pop", { bonds: htoken });
@@ -171,8 +168,8 @@ export class Bot {
           for (const collateral of collaterals) {
             const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
             const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
-            const swapAmount = repayAmount.div(underlyingPrecisionScalar);
-            if (await this.isUnderwater(account)) {
+            const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+            if ((await this.isUnderwater(account)) && repayAmount.gt(0)) {
               await this.liquidate(account, bond, collateral, swapAmount, underlying);
             } else {
               break liquidateAccount;

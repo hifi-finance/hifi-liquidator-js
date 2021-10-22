@@ -9,6 +9,7 @@ export type Args = {
     uniswap: {
       factory: string;
       initCodeHash: string;
+      underlyingPairs: { [underlying: string]: { pair: string; token0: string; token1: string } };
     };
     startBlock: number;
   };
