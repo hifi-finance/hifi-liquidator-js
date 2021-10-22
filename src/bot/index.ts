@@ -163,11 +163,19 @@ export class Bot {
         liquidateAccount: for (const bond of bonds) {
           const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
           for (const collateral of collaterals) {
-            const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
-            const repayAmount = await this.deployments.balanceSheet.getRepayAmount(collateral, collateralAmount, bond);
-            const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
-            if ((await this.isUnderwater(account)) && repayAmount.gt(0)) {
-              await this.liquidate(account, bond, collateral, swapAmount, underlying);
+            if (await this.isUnderwater(account)) {
+              const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
+              const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
+              const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
+                collateral,
+                collateralAmount,
+                bond,
+              );
+              const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
+              const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+              if (repayAmount.gt(0)) {
+                await this.liquidate(account, bond, collateral, swapAmount, underlying);
+              }
             } else {
               break liquidateAccount;
             }
