@@ -20,7 +20,6 @@ export class Bot {
   private persistence;
   private provider;
   private signer;
-  private silentMode;
 
   constructor(args: Args) {
     this.db = initDb(args.persistence, args.provider.network.name);
@@ -30,7 +29,6 @@ export class Bot {
     this.persistence = args.persistence;
     this.provider = args.provider;
     this.signer = args.signer;
-    this.silentMode = args.silentMode;
 
     this.deployments = {
       balanceSheet: new Contract(this.network.contracts.balanceSheet, BalanceSheetAbi, this.signer) as BalanceSheet,
@@ -93,7 +91,6 @@ export class Bot {
           tokenA: collateral,
           tokenB: underlying,
         });
-    // TODO: split condition
     if ((await this.provider.getCode(pair)) !== "0x") {
       const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
       // TODO: profitibility calculation for liquidation
@@ -181,22 +178,20 @@ export class Bot {
   }
 
   public async run(): Promise<void> {
-    if (!this.silentMode) {
-      Logger.info("Starting Hifi liquidator");
-      Logger.info("Network: %s", this.provider.network.name);
-      Logger.info("Profits will be sent to %s", await this.signer.getAddress());
-      Logger.info("Data persistence is enabled: %s", this.persistence);
-      Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
-      Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
-    }
+    Logger.info("Starting Hifi liquidator");
+    Logger.info("Network: %s", this.provider.network.name);
+    Logger.info("Profits will be sent to %s", await this.signer.getAddress());
+    Logger.info("Data persistence is enabled: %s", this.persistence);
+    Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
+    Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
 
     await this.syncAll();
+    // TODO: respond to Chainlink price update instead of new block
+    // TODO: add cooldown time
     this.provider.on("block", async blockNumber => {
       if (!this.isBusy) {
         this.isBusy = true;
-        if (!this.silentMode) {
-          Logger.info("Block #%s", blockNumber);
-        }
+        Logger.info("Block #%s", blockNumber);
         await this.syncAll(blockNumber);
         await this.liquidateAllUnderwater();
         await this.liquidateAllMature(blockNumber);
@@ -226,13 +221,11 @@ export class Bot {
       startBlock,
       latestBlock,
     );
-    if (!this.silentMode) {
-      if (borrowEvents.length > 0) {
-        Logger.info("Captured %s borrow event(s)", borrowEvents.length);
-      }
-      if (depositEvents.length > 0) {
-        Logger.info("Captured %s deposit event(s)", depositEvents.length);
-      }
+    if (borrowEvents.length > 0) {
+      Logger.info("Captured %s borrow event(s)", borrowEvents.length);
+    }
+    if (depositEvents.length > 0) {
+      Logger.info("Captured %s deposit event(s)", depositEvents.length);
     }
     // event decoding/processing
     for (let i = 0; i < borrowEvents.length; i++) {

@@ -46,11 +46,6 @@ spec:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
                   key: selected-account
-            - name: SILENT_MODE
-              valueFrom:
-                configMapKeyRef:
-                  name: hifi-liquidator-js-config-map
-                  key: silent-mode
             - name: WALLET_SEED
               valueFrom:
                 secretKeyRef:

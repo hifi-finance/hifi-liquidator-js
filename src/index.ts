@@ -7,7 +7,7 @@ import { NetworkName } from "./types";
 
 require("dotenv").config();
 
-const { ALCHEMY_KEY, PERSISTENCE, SELECTED_ACCOUNT, SILENT_MODE, WALLET_SEED } = process.env as {
+const { ALCHEMY_KEY, PERSISTENCE, SELECTED_ACCOUNT, WALLET_SEED } = process.env as {
   [key: string]: string;
 };
 
@@ -24,5 +24,4 @@ new Bot({
   persistence: isTrueSet(PERSISTENCE),
   provider,
   signer,
-  silentMode: isTrueSet(SILENT_MODE),
 }).run();
