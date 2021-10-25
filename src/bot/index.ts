@@ -100,11 +100,12 @@ export class Bot {
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
         this.network.contracts.hifiFlashSwap,
         utils.defaultAbiCoder.encode(
-          ["tuple(address borrower, address bond, uint8 repayType)"],
+          ["tuple(address borrower, address bond, uint256 minProfit, uint8 repayType)"],
           [
             {
               borrower: account,
               bond: bond,
+              minProfit: "0",
               repayType: addressesAreEqual(collateral, underlying) ? "0" : "1",
             },
           ],
@@ -192,6 +193,7 @@ export class Bot {
     Logger.info("Data persistence is enabled: %s", this.persistence);
     Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
     Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
+    Logger.info("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
     // TODO: respond to Chainlink price update instead of new block
