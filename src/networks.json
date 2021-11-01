@@ -19,7 +19,7 @@
   },
   "rinkeby": {
     "contracts": {
-      "balanceSheet": "0xfe6E92a567565fCB19d850B147DC8af7Ec273c35",
+      "balanceSheet": "0x855C9a0806FB0FAf69616a76F19df4804f7B1270",
       "hifiFlashSwap": "0x224c47A926E8d71200cc86D42D7F262042076224"
     },
     "uniswap": {
@@ -33,6 +33,6 @@
         }
       }
     },
-    "startBlock": 9349804
+    "startBlock": 9527354
   }
 }
