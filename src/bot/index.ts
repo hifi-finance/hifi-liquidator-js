@@ -1,9 +1,9 @@
-import { abi as UniswapV2PairAbi } from "@hifi/flash-swap/artifacts/IUniswapV2Pair.json";
-import { IUniswapV2Pair as UniswapV2Pair } from "@hifi/flash-swap/typechain/IUniswapV2Pair";
-import { abi as BalanceSheetAbi } from "@hifi/protocol/artifacts/BalanceSheetV1.json";
-import { abi as HTokenAbi } from "@hifi/protocol/artifacts/HToken.json";
-import { BalanceSheetV1 as BalanceSheet } from "@hifi/protocol/typechain/BalanceSheetV1";
-import { HToken } from "@hifi/protocol/typechain/HToken";
+import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/IUniswapV2Pair__factory";
+import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/IUniswapV2Pair";
+import { BalanceSheetV1 } from "@hifi/protocol/dist/types/BalanceSheetV1";
+import { BalanceSheetV1__factory } from "@hifi/protocol/dist/types/factories/BalanceSheetV1__factory";
+import { HToken__factory } from "@hifi/protocol/dist/types/factories/HToken__factory";
+import { HToken } from "@hifi/protocol/dist/types/HToken";
 import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
@@ -13,7 +13,7 @@ import { Args, Db, Htokens, Vault, Vaults } from "./types";
 export class Bot {
   private db: Db;
   private deployments: {
-    balanceSheet: BalanceSheet;
+    balanceSheet: BalanceSheetV1;
   };
   private isBusy;
   private network;
@@ -31,7 +31,11 @@ export class Bot {
     this.signer = args.signer;
 
     this.deployments = {
-      balanceSheet: new Contract(this.network.contracts.balanceSheet, BalanceSheetAbi, this.signer) as BalanceSheet,
+      balanceSheet: new Contract(
+        this.network.contracts.balanceSheet,
+        BalanceSheetV1__factory.abi,
+        this.signer,
+      ) as BalanceSheetV1,
     };
   }
 
@@ -53,7 +57,7 @@ export class Bot {
   private async cacheHtoken(htoken: string): Promise<void> {
     const htokens = this.htokens();
     if (htokens[htoken] === undefined) {
-      const contract = new Contract(htoken, HTokenAbi, this.signer) as HToken;
+      const contract = new Contract(htoken, HToken__factory.abi, this.signer) as HToken;
       const maturity = (await contract.maturity()).toNumber();
       const underlying = await contract.underlying();
       const underlyingPrecisionScalar = (await contract.underlyingPrecisionScalar()).toNumber();
@@ -92,7 +96,7 @@ export class Bot {
           tokenB: underlying,
         });
     if ((await this.provider.getCode(pair)) !== "0x") {
-      const contract = new Contract(pair, UniswapV2PairAbi, this.signer) as UniswapV2Pair;
+      const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
       // TODO: profitibility calculation for liquidation
       // TODO: pop the collateral from persistence list after liquidation
       const swapArgs: [BigNumberish, BigNumberish, string, string] = [
