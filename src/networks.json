@@ -2,7 +2,8 @@
   "matic": {
     "contracts": {
       "balanceSheet": "0x70cCDBE39bb8874155af29BEEB7A05ba08A75226",
-      "hifiFlashSwap": "0x7D4983c005075045E0762345d0EA681c4d57F8eF"
+      "hifiFlashSwap": "0x7D4983c005075045E0762345d0EA681c4d57F8eF",
+      "hifiFlashSwapUnderlying": "0x0000000000000000000000000000000000000000"
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
@@ -20,7 +21,8 @@
   "rinkeby": {
     "contracts": {
       "balanceSheet": "0x855C9a0806FB0FAf69616a76F19df4804f7B1270",
-      "hifiFlashSwap": "0xD46d75DE919E50f7547a46a96c507b1218Ae2299"
+      "hifiFlashSwap": "0x019b52eB8d7Fe2df2ab2342512800E535F41BC13",
+      "hifiFlashSwapUnderlying": "0x7eC365f2ee8f927239B0fcE5B7F69fF47E9639c2"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",

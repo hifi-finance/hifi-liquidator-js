@@ -102,16 +102,24 @@ export class Bot {
       const swapArgs: [BigNumberish, BigNumberish, string, string] = [
         addressesAreEqual(token0, underlying) ? swapAmount : 0,
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
-        this.network.contracts.hifiFlashSwap,
+        addressesAreEqual(collateral, underlying)
+          ? this.network.contracts.hifiFlashSwapUnderlying
+          : this.network.contracts.hifiFlashSwap,
         utils.defaultAbiCoder.encode(
-          ["tuple(address borrower, address bond, uint256 minProfit, uint8 repayType)"],
+          addressesAreEqual(collateral, underlying)
+            ? ["tuple(address borrower, address bond)"]
+            : ["tuple(address borrower, address bond, uint256 minProfit)"],
           [
-            {
-              borrower: account,
-              bond: bond,
-              minProfit: "0",
-              repayType: addressesAreEqual(collateral, underlying) ? "0" : "1",
-            },
+            addressesAreEqual(collateral, underlying)
+              ? {
+                  borrower: account,
+                  bond: bond,
+                }
+              : {
+                  borrower: account,
+                  bond: bond,
+                  minProfit: "0",
+                },
           ],
         ),
       ];
