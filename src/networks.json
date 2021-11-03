@@ -22,7 +22,7 @@
     "contracts": {
       "balanceSheet": "0x855C9a0806FB0FAf69616a76F19df4804f7B1270",
       "hifiFlashSwap": "0x019b52eB8d7Fe2df2ab2342512800E535F41BC13",
-      "hifiFlashSwapUnderlying": "0x7eC365f2ee8f927239B0fcE5B7F69fF47E9639c2"
+      "hifiFlashSwapUnderlying": "0xB4d976fc404dfcA0E84f1f54B97a70429479Ae20"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",

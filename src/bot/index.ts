@@ -107,13 +107,14 @@ export class Bot {
           : this.network.contracts.hifiFlashSwap,
         utils.defaultAbiCoder.encode(
           addressesAreEqual(collateral, underlying)
-            ? ["tuple(address borrower, address bond)"]
+            ? ["tuple(address borrower, address bond, address bot)"]
             : ["tuple(address borrower, address bond, uint256 minProfit)"],
           [
             addressesAreEqual(collateral, underlying)
               ? {
                   borrower: account,
                   bond: bond,
+                  bot: await this.signer.getAddress(),
                 }
               : {
                   borrower: account,
