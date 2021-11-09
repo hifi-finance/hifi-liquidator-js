@@ -51,15 +51,15 @@ spec:
                 secretKeyRef:
                   name: hifi-liquidator-js-secret
                   key: wallet-seed
-          image: hififinance/hifi-liquidator-js:1.0.3
+          image: hififinance/hifi-liquidator-js:1.0.4
           name: hifi-liquidator-js
           resources:
             limits:
-              cpu: "0.25"
-              memory: 512Mi
-            requests:
-              cpu: "0.05"
+              cpu: "0.1"
               memory: 128Mi
+            requests:
+              cpu: "0.01"
+              memory: 64Mi
           volumeMounts:
             - mountPath: /bot/db
               name: db
