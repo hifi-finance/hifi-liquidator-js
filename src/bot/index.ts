@@ -103,23 +103,24 @@ export class Bot {
         addressesAreEqual(token0, underlying) ? swapAmount : 0,
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
         addressesAreEqual(collateral, underlying)
-          ? this.network.contracts.hifiFlashSwapUnderlying
-          : this.network.contracts.hifiFlashSwap,
+          ? this.network.contracts.underlyingFlashSwap
+          : this.network.contracts.collateralFlashSwap,
         utils.defaultAbiCoder.encode(
           addressesAreEqual(collateral, underlying)
-            ? ["tuple(address borrower, address bond, address bot)"]
-            : ["tuple(address borrower, address bond, uint256 minProfit)"],
+            ? ["tuple(address borrower, address bond, address subsidizer)"]
+            : ["tuple(address borrower, address bond, uint256 minProfit, address subsidizer)"],
           [
             addressesAreEqual(collateral, underlying)
               ? {
                   borrower: account,
                   bond: bond,
-                  bot: await this.signer.getAddress(),
+                  subsidizer: await this.signer.getAddress(),
                 }
               : {
                   borrower: account,
                   bond: bond,
                   minProfit: "0",
+                  subsidizer: await this.signer.getAddress(),
                 },
           ],
         ),
@@ -205,7 +206,8 @@ export class Bot {
     Logger.info("Profits will be sent to %s", await this.signer.getAddress());
     Logger.info("Data persistence is enabled: %s", this.persistence);
     Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
-    Logger.info("HifiFlashSwap: %s", this.network.contracts.hifiFlashSwap);
+    Logger.info("collateralFlashSwap: %s", this.network.contracts.collateralFlashSwap);
+    Logger.info("underlyingFlashSwap: %s", this.network.contracts.underlyingFlashSwap);
     Logger.info("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
