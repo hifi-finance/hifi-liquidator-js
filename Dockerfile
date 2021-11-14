@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:16-slim
 LABEL author="scorpion9979 <ahmed.i.tawefeeq@protonmail.com>"
 WORKDIR /bot
 COPY ./package.json ./package.json
