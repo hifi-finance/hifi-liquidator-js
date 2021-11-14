@@ -4,7 +4,6 @@ metadata:
   annotations:
     kompose.cmd: kompose convert
     kompose.version: 1.22.0 (955b78124)
-  creationTimestamp: null
   labels:
     io.kompose.service: hifi-liquidator-js
   name: hifi-liquidator-js
@@ -20,7 +19,6 @@ spec:
       annotations:
         kompose.cmd: kompose convert
         kompose.version: 1.22.0 (955b78124)
-      creationTimestamp: null
       labels:
         io.kompose.service: hifi-liquidator-js
     spec:
@@ -51,7 +49,7 @@ spec:
                 secretKeyRef:
                   name: hifi-liquidator-js-secret
                   key: wallet-seed
-          image: hififinance/hifi-liquidator-js:1.0.4
+          image: hififinance/hifi-liquidator-js:1.0.5
           name: hifi-liquidator-js
           resources:
             limits:
