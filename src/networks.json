@@ -1,9 +1,8 @@
 {
   "matic": {
     "contracts": {
-      "balanceSheet": "0x70cCDBE39bb8874155af29BEEB7A05ba08A75226",
-      "collateralFlashSwap": "0x7D4983c005075045E0762345d0EA681c4d57F8eF",
-      "underlyingFlashSwap": "0x0000000000000000000000000000000000000000"
+      "balanceSheet": "0x5B92712bb68b41abf6c153e807Fc10bc4a9e290d",
+      "flashSwap": "0x8dC4c14aD5a1D50959BB9F67fc86219fF5a632E9"
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
@@ -16,13 +15,12 @@
         }
       }
     },
-    "startBlock": 18431897
+    "startBlock": 21135054
   },
   "rinkeby": {
     "contracts": {
       "balanceSheet": "0x855C9a0806FB0FAf69616a76F19df4804f7B1270",
-      "collateralFlashSwap": "0xb5DD734a665e11B7Cb115593B8E0DBa07118a4c7",
-      "underlyingFlashSwap": "0xB4d976fc404dfcA0E84f1f54B97a70429479Ae20"
+      "flashSwap": "0x8c02F9665bcCDdABb924c09B4e825ca4cA2A3508"
     },
     "uniswap": {
       "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
