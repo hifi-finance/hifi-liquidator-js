@@ -4,8 +4,7 @@ export type Args = {
   network: {
     contracts: {
       balanceSheet: string;
-      collateralFlashSwap: string;
-      underlyingFlashSwap: string;
+      flashSwap: string;
     };
     uniswap: {
       factory: string;

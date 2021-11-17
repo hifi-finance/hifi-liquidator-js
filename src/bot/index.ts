@@ -1,3 +1,4 @@
+import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/IUniswapV2Pair__factory";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/IUniswapV2Pair";
 import { BalanceSheetV1 } from "@hifi/protocol/dist/types/BalanceSheetV1";
@@ -102,26 +103,16 @@ export class Bot {
       const swapArgs: [BigNumberish, BigNumberish, string, string] = [
         addressesAreEqual(token0, underlying) ? swapAmount : 0,
         addressesAreEqual(token1, underlying) ? swapAmount : 0,
-        addressesAreEqual(collateral, underlying)
-          ? this.network.contracts.underlyingFlashSwap
-          : this.network.contracts.collateralFlashSwap,
+        this.network.contracts.flashSwap,
         utils.defaultAbiCoder.encode(
-          addressesAreEqual(collateral, underlying)
-            ? ["tuple(address borrower, address bond, address subsidizer)"]
-            : ["tuple(address borrower, address bond, uint256 minProfit, address subsidizer)"],
+          ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
           [
-            addressesAreEqual(collateral, underlying)
-              ? {
-                  borrower: account,
-                  bond: bond,
-                  subsidizer: await this.signer.getAddress(),
-                }
-              : {
-                  borrower: account,
-                  bond: bond,
-                  minProfit: "0",
-                  subsidizer: await this.signer.getAddress(),
-                },
+            {
+              borrower: account,
+              bond: bond,
+              collateral: collateral,
+              turnout: MinInt256,
+            },
           ],
         ),
       ];
@@ -206,8 +197,7 @@ export class Bot {
     Logger.info("Profits will be sent to %s", await this.signer.getAddress());
     Logger.info("Data persistence is enabled: %s", this.persistence);
     Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
-    Logger.info("collateralFlashSwap: %s", this.network.contracts.collateralFlashSwap);
-    Logger.info("underlyingFlashSwap: %s", this.network.contracts.underlyingFlashSwap);
+    Logger.info("flashSwap: %s", this.network.contracts.flashSwap);
     Logger.info("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
