@@ -709,9 +709,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hifi/flash-swap@npm:^1.6.1":
-  version: 1.6.1
-  resolution: "@hifi/flash-swap@npm:1.6.1"
+"@hifi/flash-swap@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@hifi/flash-swap@npm:1.7.0"
   dependencies:
     "@ethersproject/abi": ^5.5.0
     "@ethersproject/bytes": ^5.5.0
@@ -725,7 +725,7 @@ __metadata:
     "@paulrberg/contracts": 3.6.1
     "@uniswap/v2-core": 1.0.1
     ethers: ^5.5.1
-  checksum: e01f155cbcf3df3706f0595dee6dbc7fba183b75343190a7bf992764d010758a899b6f0ed15cdae9ffb26f11361341c73e4ba481d3a349a5c3a3ca600bfbf570
+  checksum: db338e9a25a537d45895216bc78e487526f1d8a9b5b9eef5e5effe0663209940dd9137eef788f2021eaeb963a972aae239dbc27b89b6fb69c58bc51ac37cff46
   languageName: node
   linkType: hard
 
@@ -735,7 +735,7 @@ __metadata:
   dependencies:
     "@commitlint/cli": ^13.1.0
     "@commitlint/config-conventional": ^13.1.0
-    "@hifi/flash-swap": ^1.6.1
+    "@hifi/flash-swap": ^1.7.0
     "@hifi/protocol": ^1.7.1
     "@types/node": ^16.6.1
     "@typescript-eslint/eslint-plugin": ^4.29.2
