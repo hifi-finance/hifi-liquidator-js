@@ -55,4 +55,4 @@ $ yarn start
 
 ## License
 
-TODO
+[LGPL v3](./LICENSE.md) © Mainframe Group Inc.
