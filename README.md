@@ -2,22 +2,7 @@
 
 This protocol liquidation bot enables anyone running it to detect and liquidate bad debt, ensuring that the protocol always stays solvent and stable.
 
-### Supported Chains
-
-- [ ] Ethereum Mainnet
-- [x] Polygon Mainnet
-- [ ] Binance Smart Chain Mainnet
-- [ ] Fantom
-- [ ] Ethereum Goerli Testnet
-- [ ] Ethereum Kovan Testnet
-- [x] Ethereum Rinkeby Testnet
-- [ ] Ethereum Ropsten Testnet
-
-## Contributing
-
-TODO
-
-### Set Up
+## Set Up
 
 Install the dependencies:
 
@@ -56,6 +41,17 @@ Or
 $ yarn build
 $ yarn start
 ```
+
+## Supported Chains
+
+- [ ] Ethereum Mainnet
+- [x] Polygon Mainnet
+- [ ] Binance Smart Chain Mainnet
+- [ ] Fantom
+- [ ] Ethereum Goerli Testnet
+- [ ] Ethereum Kovan Testnet
+- [x] Ethereum Rinkeby Testnet
+- [ ] Ethereum Ropsten Testnet
 
 ## License
 
