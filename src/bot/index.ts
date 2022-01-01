@@ -117,8 +117,9 @@ export class Bot {
         ),
       ];
       // TODO: profitibility calculation (including gas)
-      // const g = await contract.estimateGas.swap(...swapArgs);
-      const tx = await contract.swap(...swapArgs);
+      const g = await contract.estimateGas.swap(...swapArgs);
+      const o = utils.parseUnits("20", "gwei");
+      const tx = await contract.swap(...swapArgs, { gasPrice: g.add(o) });
       const receipt = await tx.wait(1);
       Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
     }
