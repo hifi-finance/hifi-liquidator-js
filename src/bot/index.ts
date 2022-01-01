@@ -96,34 +96,32 @@ export class Bot {
           tokenA: collateral,
           tokenB: underlying,
         });
-    if ((await this.provider.getCode(pair)) !== "0x") {
-      const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
-      // TODO: profitibility calculation for liquidation
-      // TODO: pop the collateral from persistence list after liquidation
-      const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-        addressesAreEqual(token0, underlying) ? swapAmount : 0,
-        addressesAreEqual(token1, underlying) ? swapAmount : 0,
-        this.network.contracts.flashSwap,
-        utils.defaultAbiCoder.encode(
-          ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
-          [
-            {
-              borrower: account,
-              bond: bond,
-              collateral: collateral,
-              turnout: MinInt256,
-            },
-          ],
-        ),
-      ];
-      // TODO: profitibility calculation (including gas)
-      const gLimit = await contract.estimateGas.swap(...swapArgs);
-      const gPrice = await this.provider.getGasPrice();
-      const gPriceMod = gPrice.mul(150).div(100);
-      const tx = await contract.swap(...swapArgs, { gasPrice: gPriceMod, gasLimit: gLimit });
-      const receipt = await tx.wait(1);
-      Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-    }
+    const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
+    // TODO: profitibility calculation for liquidation
+    // TODO: pop the collateral from persistence list after liquidation
+    const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+      addressesAreEqual(token0, underlying) ? swapAmount : 0,
+      addressesAreEqual(token1, underlying) ? swapAmount : 0,
+      this.network.contracts.flashSwap,
+      utils.defaultAbiCoder.encode(
+        ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
+        [
+          {
+            borrower: account,
+            bond: bond,
+            collateral: collateral,
+            turnout: MinInt256,
+          },
+        ],
+      ),
+    ];
+    // TODO: profitibility calculation (including gas)
+    const gLimit = await contract.estimateGas.swap(...swapArgs);
+    const gPrice = await this.provider.getGasPrice();
+    const gPriceMod = gPrice.mul(150).div(100);
+    const tx = await contract.swap(...swapArgs, { gasPrice: gPriceMod, gasLimit: gLimit });
+    const receipt = await tx.wait(1);
+    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
   }
 
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
