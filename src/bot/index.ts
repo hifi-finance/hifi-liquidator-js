@@ -117,9 +117,10 @@ export class Bot {
         ),
       ];
       // TODO: profitibility calculation (including gas)
-      const g = await contract.estimateGas.swap(...swapArgs);
-      const o = utils.parseUnits("20", "gwei");
-      const tx = await contract.swap(...swapArgs, { gasPrice: g.add(o) });
+      const gLimit = await contract.estimateGas.swap(...swapArgs);
+      const gPrice = await this.provider.getGasPrice();
+      const gPriceMod = gPrice.mul(150).div(100);
+      const tx = await contract.swap(...swapArgs, { gasPrice: gPriceMod, gasLimit: gLimit });
       const receipt = await tx.wait(1);
       Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
     }
