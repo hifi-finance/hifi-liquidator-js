@@ -1,4 +1,4 @@
-import { BigNumber, Wallet, providers } from "ethers";
+import { Wallet, providers } from "ethers";
 
 export type Args = {
   network: {

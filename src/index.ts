@@ -1,9 +1,8 @@
-import { Wallet, providers, utils } from "ethers";
-
 import { Bot } from "./bot/index";
 import { isTrueSet } from "./helpers";
 import * as networks from "./networks.json";
 import { NetworkName } from "./types";
+import { Wallet, providers, utils } from "ethers";
 
 require("dotenv").config();
 

@@ -1,15 +1,14 @@
-import { MinInt256 } from "@ethersproject/constants";
-import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/IUniswapV2Pair__factory";
-import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/IUniswapV2Pair";
-import { BalanceSheetV1 } from "@hifi/protocol/dist/types/BalanceSheetV1";
-import { BalanceSheetV1__factory } from "@hifi/protocol/dist/types/factories/BalanceSheetV1__factory";
-import { HToken__factory } from "@hifi/protocol/dist/types/factories/HToken__factory";
-import { HToken } from "@hifi/protocol/dist/types/HToken";
-import { BigNumber, BigNumberish, Contract, utils } from "ethers";
-
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
 import { Args, Db, Htokens, Vault, Vaults } from "./types";
+import { MinInt256 } from "@ethersproject/constants";
+import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/IUniswapV2Pair";
+import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/IUniswapV2Pair__factory";
+import { BalanceSheetV1 } from "@hifi/protocol/dist/types/BalanceSheetV1";
+import { HToken } from "@hifi/protocol/dist/types/HToken";
+import { BalanceSheetV1__factory } from "@hifi/protocol/dist/types/factories/BalanceSheetV1__factory";
+import { HToken__factory } from "@hifi/protocol/dist/types/factories/HToken__factory";
+import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 export class Bot {
   private db: Db;
