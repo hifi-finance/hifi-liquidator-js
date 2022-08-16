@@ -14,7 +14,7 @@ export async function batchQueryFilter(
   eventFilter: EventFilter,
   fromBlock: number = 0,
   toBlock: number,
-  span: number = 10000,
+  span: number = 3500,
 ) {
   let events: Event[] = [];
   for (let currBlock = fromBlock; currBlock < toBlock + 1; currBlock += span) {
