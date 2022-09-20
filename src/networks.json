@@ -2,7 +2,7 @@
   "matic": {
     "contracts": {
       "balanceSheet": "0xd2abC684c94603Cf3Eb72a0dAAAdE8943a754282",
-      "flashSwap": "0x19d05F7c3045d9eEa9375983384470627B6756AF"
+      "flashSwap": "0x4D349A76321eBc9fF8313f23967Ad913720bbda3"
     },
     "uniswap": {
       "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
