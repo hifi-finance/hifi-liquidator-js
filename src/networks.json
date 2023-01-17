@@ -1,4 +1,22 @@
 {
+  "homestead": {
+    "contracts": {
+      "balanceSheet": "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b",
+      "flashSwap": "0x529D440aCa6D7Ad6c8Fe2423d78DB7Ef95460435"
+    },
+    "uniswap": {
+      "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f",
+      "underlyingPairs": {
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
+          "pair": "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+          "token0": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "token1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        }
+      }
+    },
+    "startBlock": 16228745
+  },
   "matic": {
     "contracts": {
       "balanceSheet": "0xd2abC684c94603Cf3Eb72a0dAAAdE8943a754282",
@@ -16,23 +34,5 @@
       }
     },
     "startBlock": 30144233
-  },
-  "rinkeby": {
-    "contracts": {
-      "balanceSheet": "0x93A3677eab94ce90e07b4BC243DB2F8B1351c5B7",
-      "flashSwap": "0x8c02F9665bcCDdABb924c09B4e825ca4cA2A3508"
-    },
-    "uniswap": {
-      "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
-      "initCodeHash": "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f",
-      "underlyingPairs": {
-        "0x1Eea97bE3e3a291135794c6417AD54109004FdC6": {
-          "pair": "0x28F095098395955B9A46a50A140B48c4De55fF84",
-          "token0": "0x03AF85872ed51d0b7C919410eAfd3C00CDFA3E54",
-          "token1": "0x1Eea97bE3e3a291135794c6417AD54109004FdC6"
-        }
-      }
-    },
-    "startBlock": 9607741
   }
 }

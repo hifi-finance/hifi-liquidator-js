@@ -44,14 +44,11 @@ $ yarn start
 
 ## Supported Chains
 
-- [ ] Ethereum Mainnet
+- [x] Ethereum Mainnet
 - [x] Polygon Mainnet
 - [ ] Binance Smart Chain Mainnet
 - [ ] Fantom
 - [ ] Ethereum Goerli Testnet
-- [ ] Ethereum Kovan Testnet
-- [x] Ethereum Rinkeby Testnet
-- [ ] Ethereum Ropsten Testnet
 
 ## License
 
