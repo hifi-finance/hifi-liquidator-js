@@ -1,3 +1,4 @@
+import { NetworkName } from "./types";
 import { Contract, Event, EventFilter, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
 import * as fs from "fs";
@@ -26,6 +27,15 @@ export async function batchQueryFilter(
     events = [...events, ...currEvent];
   }
   return events;
+}
+
+export function getFlashbotsURL(chainName: NetworkName) {
+  switch (chainName) {
+    case "homestead":
+      return "https://rpc.flashbots.net";
+    default:
+      return "https://rpc.flashbots.net";
+  }
 }
 
 export function getUniswapV2PairInfo({

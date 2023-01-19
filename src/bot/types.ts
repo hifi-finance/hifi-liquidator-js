@@ -11,6 +11,7 @@ export type Args = {
       initCodeHash: string;
       underlyingPairs: { [underlying: string]: { pair: string; token0: string; token1: string } };
     };
+    flashbotsEnabled: boolean;
     startBlock: number;
   };
   persistence: boolean;

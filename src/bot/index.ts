@@ -115,10 +115,9 @@ export class Bot {
       ),
     ];
     // TODO: profitibility calculation (including gas)
-    const gLimit = await contract.estimateGas.swap(...swapArgs);
-    const gPrice = await this.provider.getGasPrice();
-    const gPriceMod = gPrice.mul(150).div(100);
-    const tx = await contract.swap(...swapArgs, { gasPrice: gPriceMod, gasLimit: gLimit });
+    const gasLimit = await contract.estimateGas.swap(...swapArgs);
+    const gasPrice = await this.provider.getGasPrice();
+    const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
     const receipt = await tx.wait(1);
     Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
   }
@@ -191,13 +190,13 @@ export class Bot {
   }
 
   public async run(): Promise<void> {
-    Logger.info("Starting Hifi liquidator");
-    Logger.info("Network: %s", this.provider.network.name);
-    Logger.info("Profits will be sent to %s", await this.signer.getAddress());
-    Logger.info("Data persistence is enabled: %s", this.persistence);
-    Logger.info("BalanceSheet: %s", this.network.contracts.balanceSheet);
-    Logger.info("flashSwap: %s", this.network.contracts.flashSwap);
-    Logger.info("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
+    Logger.notice("Starting Hifi liquidator");
+    Logger.notice("Network: %s", this.provider.network.name);
+    Logger.notice("Profits will be sent to: %s", await this.signer.getAddress());
+    Logger.notice("Data persistence is enabled: %s", this.persistence);
+    Logger.notice("BalanceSheet: %s", this.network.contracts.balanceSheet);
+    Logger.notice("flashSwap: %s", this.network.contracts.flashSwap);
+    Logger.notice("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
     // TODO: respond to Chainlink price update instead of new block
@@ -215,7 +214,7 @@ export class Bot {
   }
 
   public stop(): void {
-    Logger.info("Stopping Hifi liquidator");
+    Logger.notice("Stopping Hifi liquidator");
     this.provider.removeAllListeners();
   }
 
@@ -236,10 +235,10 @@ export class Bot {
       latestBlock,
     );
     if (borrowEvents.length > 0) {
-      Logger.info("Captured %s borrow event(s)", borrowEvents.length);
+      Logger.notice("Captured %s borrow event(s)", borrowEvents.length);
     }
     if (depositEvents.length > 0) {
-      Logger.info("Captured %s deposit event(s)", depositEvents.length);
+      Logger.notice("Captured %s deposit event(s)", depositEvents.length);
     }
     // event decoding/processing
     for (let i = 0; i < borrowEvents.length; i++) {

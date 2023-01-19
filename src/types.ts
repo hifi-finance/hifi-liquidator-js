@@ -1,1 +1,1 @@
-export type NetworkName = "matic" | "homestead";
+export type NetworkName = "homestead" | "matic";

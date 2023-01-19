@@ -1,5 +1,5 @@
 import { Bot } from "./bot/index";
-import { isTrueSet } from "./helpers";
+import { getFlashbotsURL, isTrueSet } from "./helpers";
 import * as networks from "./networks.json";
 import { NetworkName } from "./types";
 import { Wallet, providers, utils } from "ethers";
@@ -14,10 +14,12 @@ const { NETWORK_NAME } = process.env as { NETWORK_NAME: NetworkName };
 
 const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
 
-const provider = new providers.FallbackProvider([
-  new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
-  new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
-]);
+const provider = networks[NETWORK_NAME].flashbotsEnabled
+  ? new providers.JsonRpcProvider(getFlashbotsURL(NETWORK_NAME), NETWORK_NAME)
+  : new providers.FallbackProvider([
+      new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
+      new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
+    ]);
 
 const signer = new Wallet(account, provider);
 

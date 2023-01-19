@@ -4,7 +4,8 @@ services:
     build: .
     environment:
       ALCHEMY_KEY: $ALCHEMY_KEY
-      NETWORK_NAME: ${NETWORK_NAME:-matic}
+      INFURA_KEY: $INFURA_KEY
+      NETWORK_NAME: ${NETWORK_NAME:-homestead}
       PERSISTENCE: ${PERSISTENCE:-true}
       SELECTED_ACCOUNT: ${SELECTED_ACCOUNT:-0}
       WALLET_SEED: $WALLET_SEED

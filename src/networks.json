@@ -15,6 +15,7 @@
         }
       }
     },
+    "flashbotsEnabled": true,
     "startBlock": 16228745
   },
   "matic": {
@@ -33,6 +34,7 @@
         }
       }
     },
+    "flashbotsEnabled": false,
     "startBlock": 30144233
   }
 }

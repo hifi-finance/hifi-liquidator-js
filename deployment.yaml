@@ -29,6 +29,11 @@ spec:
                 secretKeyRef:
                   name: hifi-liquidator-js-secret
                   key: alchemy-key
+            - name: INFURA_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: hifi-liquidator-js-secret
+                  key: infura-key
             - name: NETWORK_NAME
               valueFrom:
                 configMapKeyRef:
