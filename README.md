@@ -10,7 +10,7 @@ The bot monitors accounts for underwater vaults (where the debt is greater than 
 
 ### Prerequisites
 
-- Node.js
+- NVM
 - Yarn package manager
 - Docker (optional)
 
@@ -23,13 +23,19 @@ $ git clone https://github.com/hifi-finance/hifi-liquidator-js.git
 $ cd hifi-liquidator-js
 ```
 
-2. Install the dependencies with Yarn:
+2. Set the version of Node to use locally within the project:
+
+```bash
+$ nvm use
+```
+
+3. Install the dependencies with Yarn:
 
 ```bash
 $ yarn install
 ```
 
-3. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, API keys, and network information.
+4. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, API keys, and network information.
 
 ## Usage
 
