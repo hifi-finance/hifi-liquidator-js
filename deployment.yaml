@@ -39,16 +39,21 @@ spec:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
                   key: network-name
-            - name: PERSISTENCE
+            - name: PERSISTENCE_ENABLED
               valueFrom:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
-                  key: persistence
+                  key: persistence-enabled
             - name: SELECTED_ACCOUNT
               valueFrom:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
                   key: selected-account
+            - name: SELECTED_STRATEGY
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: selected-strategy
             - name: WALLET_SEED
               valueFrom:
                 secretKeyRef:

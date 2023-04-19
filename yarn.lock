@@ -1266,14 +1266,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hifi/flash-swap@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "@hifi/flash-swap@npm:1.10.0"
+"@hifi/flash-swap@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "@hifi/flash-swap@npm:1.11.0"
   dependencies:
     "@ethersproject/abi": ^5.6.0
     "@ethersproject/bytes": ^5.6.1
     "@ethersproject/providers": ^5.6.2
-    "@hifi/protocol": 1.10.0
+    "@hifi/protocol": 1.11.0
     "@openzeppelin/contracts-upgradeable": 4.5.2
     "@prb/contracts": 3.8.1
     "@uniswap/v2-core": 1.0.1
@@ -1283,7 +1283,7 @@ __metadata:
     "@prb/contracts": 3.8.0
     "@uniswap/v2-core": 1.0.1
     ethers: ^5.6.2
-  checksum: 9e76bbc1a8393fda78c9c895adde78be6aef63ab4c61a56eea8f4d0c085b422d300167e91bbd564d6bebb6380f82af26dc2dca590b48eef11dae5703e020c753
+  checksum: 66be6f6b165970a3ec5f0f992813c583075eb4575f3c7c04cdd45a9ee8de75213b3e5bd21ee1a0eea28c25469236e2178cfef7b589f1ad9bd584e7937fa73bd3
   languageName: node
   linkType: hard
 
@@ -1293,8 +1293,8 @@ __metadata:
   dependencies:
     "@commitlint/cli": ^13.2.1
     "@commitlint/config-conventional": ^13.2.0
-    "@hifi/flash-swap": ^1.10.0
-    "@hifi/protocol": ^1.10.0
+    "@hifi/flash-swap": ^1.11.0
+    "@hifi/protocol": ^1.11.0
     "@trivago/prettier-plugin-sort-imports": ^3.2.0
     "@types/node": ^16.11.26
     "@typescript-eslint/eslint-plugin": ^4.33.0
@@ -1318,9 +1318,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hifi/protocol@npm:1.10.0, @hifi/protocol@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "@hifi/protocol@npm:1.10.0"
+"@hifi/protocol@npm:1.11.0, @hifi/protocol@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "@hifi/protocol@npm:1.11.0"
   dependencies:
     "@ethersproject/abi": ^5.6.0
     "@ethersproject/bytes": ^5.6.1
@@ -1334,7 +1334,7 @@ __metadata:
     "@prb/contracts": 3.8.0
     "@prb/math": 2.5.0
     ethers: ^5.6.2
-  checksum: 8f2f2d59e8bedca17e545d89d1539dfff68eee2fd938e35441cd40e3fd00aed758100175883fdb57ab640544e67451ca545ec622920463294d84eeed9f5e87e3
+  checksum: 113e505790f0f27e15b266bae45257819b55fe6bcdc7430f70a70b1b58450fd8cfe998320c93555fdc91bf4a37c1dd71ec725fd527857804434936e3a118a83c
   languageName: node
   linkType: hard
 

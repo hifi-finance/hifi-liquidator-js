@@ -1,6 +1,6 @@
+import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, UNISWAP_V2, UNISWAP_V2_INIT_CODE_HASH, VAULTS } from "../constants";
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
-import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
-import { Args, Db, Htokens, Vault, Vaults } from "./types";
+import { BotArgs, Db, Htokens, NetworkConfig, Vault, Vaults } from "../types";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
 import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v2/IUniswapV2Pair__factory";
@@ -16,23 +16,25 @@ export class Bot {
     balanceSheet: BalanceSheetV2;
   };
   private isBusy;
-  private network;
-  private persistence;
+  private networkConfig: NetworkConfig;
+  private persistenceEnabled;
   private provider;
+  private selectedStrategy;
   private signer;
 
-  constructor(args: Args) {
-    this.db = initDb(args.persistence, args.provider.network.name);
+  constructor(args: BotArgs) {
+    this.db = initDb(args.persistenceEnabled, args.provider.network.name);
     this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.isBusy = false;
-    this.network = args.network;
-    this.persistence = args.persistence;
+    this.networkConfig = args.networkConfig;
+    this.persistenceEnabled = args.persistenceEnabled;
     this.provider = args.provider;
+    this.selectedStrategy = args.selectedStrategy;
     this.signer = args.signer;
 
     this.deployments = {
       balanceSheet: new Contract(
-        this.network.contracts.balanceSheet,
+        this.networkConfig.contracts.balanceSheet,
         BalanceSheetV2__factory.abi,
         this.signer,
       ) as BalanceSheetV2,
@@ -87,21 +89,19 @@ export class Bot {
     swapAmount: BigNumber,
     underlying: string,
   ): Promise<void> {
-    const { pair, token0, token1 } = addressesAreEqual(collateral, underlying)
-      ? this.network.uniswap.underlyingPairs[underlying]
-      : getUniswapV2PairInfo({
-          factoryAddress: this.network.uniswap.factory,
-          initCodeHash: this.network.uniswap.initCodeHash,
-          tokenA: collateral,
-          tokenB: underlying,
-        });
+    const { pair, token0, token1 } = getUniswapV2PairInfo({
+      factoryAddress: this.networkConfig.contracts.strategies[this.selectedStrategy]?.factory as string,
+      initCodeHash: UNISWAP_V2_INIT_CODE_HASH,
+      tokenA: collateral,
+      tokenB: underlying,
+    });
     const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
     // TODO: profitibility calculation for liquidation
     // TODO: pop the collateral from persistence list after liquidation
     const swapArgs: [BigNumberish, BigNumberish, string, string] = [
       addressesAreEqual(token0, underlying) ? swapAmount : 0,
       addressesAreEqual(token1, underlying) ? swapAmount : 0,
-      this.network.contracts.flashSwap,
+      this.networkConfig.contracts.strategies[this.selectedStrategy]?.flashSwap as string,
       utils.defaultAbiCoder.encode(
         ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
         [
@@ -193,9 +193,9 @@ export class Bot {
     Logger.notice("Starting Hifi liquidator");
     Logger.notice("Network: %s", this.provider.network.name);
     Logger.notice("Profits will be sent to: %s", await this.signer.getAddress());
-    Logger.notice("Data persistence is enabled: %s", this.persistence);
-    Logger.notice("BalanceSheet: %s", this.network.contracts.balanceSheet);
-    Logger.notice("flashSwap: %s", this.network.contracts.flashSwap);
+    Logger.notice("Data persistence is enabled: %s", this.persistenceEnabled);
+    Logger.notice("BalanceSheet: %s", this.networkConfig.contracts.balanceSheet);
+    Logger.notice("FlashSwap: %s", this.networkConfig.contracts.strategies[UNISWAP_V2]?.flashSwap);
     Logger.notice("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
@@ -220,7 +220,7 @@ export class Bot {
 
   private async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
-    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.network.startBlock;
+    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.networkConfig.startBlock;
     // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
     const borrowEvents = await batchQueryFilter(
       this.deployments.balanceSheet,

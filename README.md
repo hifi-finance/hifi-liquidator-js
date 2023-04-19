@@ -35,7 +35,7 @@ $ nvm use
 $ yarn install
 ```
 
-4. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, API keys, and network information.
+4. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, selected liquidation strategy, API keys, and network information.
 
 ## Usage
 
@@ -71,7 +71,7 @@ $ yarn start
 1. Ensure that your wallet has enough funds to cover gas costs and subsidize collateral for liquidations. Additionally, make sure to grant all necessary token approvals for subsidization.
 2. Double-check that the `.env` file is set up correctly, as it contains essential information needed for the smooth operation of the bot.
 3. Currently, the bot relies on new block information to initiate liquidations, which may put significant strain on API endpoints. Future enhancements could involve reacting to Chainlink price updates and implementing a cooldown period to reduce the load.
-4. To optimize API endpoint usage, consider enabling the bot's data persistence feature by setting the `PERSISTENCE` environment variable.
+4. To optimize API endpoint usage, consider enabling the bot's data persistence feature by setting the `PERSISTENCE_ENABLED` environment variable.
 
 ## Supported Chains
 
