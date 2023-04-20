@@ -10,7 +10,7 @@ const { ALCHEMY_KEY, INFURA_KEY, PERSISTENCE_ENABLED, SELECTED_ACCOUNT, WALLET_S
   [key: string]: string;
 };
 
-const { NETWORK_NAME, STRATEGY } = process.env as { NETWORK_NAME: NetworkName; STRATEGY: Strategy };
+const { NETWORK_NAME, SELECTED_STRATEGY } = process.env as { NETWORK_NAME: NetworkName; SELECTED_STRATEGY: Strategy };
 
 const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
 
@@ -27,6 +27,6 @@ new Bot({
   networkConfig: networkConfig[NETWORK_NAME],
   persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
   provider,
-  selectedStrategy: STRATEGY,
+  selectedStrategy: SELECTED_STRATEGY,
   signer,
 }).run();

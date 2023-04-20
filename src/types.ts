@@ -1,4 +1,4 @@
-import { UNISWAP_V2 } from "./constants";
+import { UNISWAP_V2, UNISWAP_V3 } from "./constants";
 import { Wallet, providers } from "ethers";
 
 export type BotArgs = {
@@ -9,21 +9,19 @@ export type BotArgs = {
   signer: Wallet;
 };
 
-export type UniswapV2StrategyConfig = {
-  factory: string;
-  flashSwap: string;
-};
-
 export type NetworkName = "homestead" | "matic";
 
-export type Strategy = typeof UNISWAP_V2;
+export type Strategy = typeof UNISWAP_V2 | typeof UNISWAP_V3;
 
-export type StrategyConfig = UniswapV2StrategyConfig;
+export type StrategyConfig = {
+  [UNISWAP_V2]: { factory: string; flashSwap: string };
+  [UNISWAP_V3]: { flashSwap: string };
+};
 
 export type Contracts = {
   balanceSheet: string;
   strategies: {
-    [K in Strategy]?: StrategyConfig;
+    [K in Strategy]?: StrategyConfig[K];
   };
 };
 

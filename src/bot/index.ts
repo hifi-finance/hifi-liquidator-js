@@ -1,9 +1,19 @@
-import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, UNISWAP_V2, UNISWAP_V2_INIT_CODE_HASH, VAULTS } from "../constants";
+import {
+  DUST_EPSILON,
+  HTOKENS,
+  LAST_SYNCED_BLOCK,
+  UNISWAP_V2,
+  UNISWAP_V2_INIT_CODE_HASH,
+  UNISWAP_V3,
+  VAULTS,
+} from "../constants";
 import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
 import { BotArgs, Db, Htokens, NetworkConfig, Vault, Vaults } from "../types";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
+import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
 import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v2/IUniswapV2Pair__factory";
+import { FlashUniswapV3__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v3/FlashUniswapV3__factory";
 import { BalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/BalanceSheetV2";
 import { HToken } from "@hifi/protocol/dist/types/contracts/core/h-token/HToken";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
@@ -14,6 +24,7 @@ export class Bot {
   private db: Db;
   private deployments: {
     balanceSheet: BalanceSheetV2;
+    flashUniswapV3?: IFlashUniswapV3;
   };
   private isBusy;
   private networkConfig: NetworkConfig;
@@ -39,6 +50,16 @@ export class Bot {
         this.signer,
       ) as BalanceSheetV2,
     };
+    if (this.selectedStrategy === UNISWAP_V3) {
+      if (!this.networkConfig.contracts.strategies[UNISWAP_V3]) {
+        throw new Error("Uniswap V3 strategy is not supported on " + this.provider.network.name);
+      }
+      this.deployments.flashUniswapV3 = new Contract(
+        this.networkConfig.contracts.strategies[UNISWAP_V3].flashSwap,
+        FlashUniswapV3__factory.abi,
+        this.signer,
+      ) as IFlashUniswapV3;
+    }
   }
 
   // getter methods
@@ -86,40 +107,67 @@ export class Bot {
     account: string,
     bond: string,
     collateral: string,
-    swapAmount: BigNumber,
+    underlyingAmount: BigNumber,
     underlying: string,
   ): Promise<void> {
-    const { pair, token0, token1 } = getUniswapV2PairInfo({
-      factoryAddress: this.networkConfig.contracts.strategies[this.selectedStrategy]?.factory as string,
-      initCodeHash: UNISWAP_V2_INIT_CODE_HASH,
-      tokenA: collateral,
-      tokenB: underlying,
-    });
-    const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
-    // TODO: profitibility calculation for liquidation
-    // TODO: pop the collateral from persistence list after liquidation
-    const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-      addressesAreEqual(token0, underlying) ? swapAmount : 0,
-      addressesAreEqual(token1, underlying) ? swapAmount : 0,
-      this.networkConfig.contracts.strategies[this.selectedStrategy]?.flashSwap as string,
-      utils.defaultAbiCoder.encode(
-        ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
-        [
-          {
+    switch (this.selectedStrategy) {
+      case UNISWAP_V2:
+      default:
+        {
+          if (!this.networkConfig.contracts.strategies[UNISWAP_V2]) {
+            throw new Error("Uniswap V2 strategy is not supported on " + this.provider.network.name);
+          }
+          const { pair, token0, token1 } = getUniswapV2PairInfo({
+            factoryAddress: this.networkConfig.contracts.strategies[UNISWAP_V2].factory,
+            initCodeHash: UNISWAP_V2_INIT_CODE_HASH,
+            tokenA: collateral,
+            tokenB: underlying,
+          });
+          const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
+          // TODO: profitibility calculation for liquidation
+          // TODO: pop the collateral from persistence list after liquidation
+          const swapArgs: [BigNumberish, BigNumberish, string, string] = [
+            addressesAreEqual(token0, underlying) ? underlyingAmount : 0,
+            addressesAreEqual(token1, underlying) ? underlyingAmount : 0,
+            this.networkConfig.contracts.strategies[UNISWAP_V2].flashSwap,
+            utils.defaultAbiCoder.encode(
+              ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
+              [
+                {
+                  borrower: account,
+                  bond: bond,
+                  collateral: collateral,
+                  turnout: MinInt256,
+                },
+              ],
+            ),
+          ];
+          // TODO: profitibility calculation (including gas)
+          const gasLimit = await contract.estimateGas.swap(...swapArgs);
+          const gasPrice = await this.provider.getGasPrice();
+          const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
+          const receipt = await tx.wait(1);
+          Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+        }
+        break;
+      case UNISWAP_V3:
+        {
+          if (!this.deployments.flashUniswapV3) {
+            throw new Error("FlashUniswapV3 contract not initialized");
+          }
+          const tx = await this.deployments.flashUniswapV3.flashLiquidate({
             borrower: account,
             bond: bond,
             collateral: collateral,
+            poolFee: 500,
             turnout: MinInt256,
-          },
-        ],
-      ),
-    ];
-    // TODO: profitibility calculation (including gas)
-    const gasLimit = await contract.estimateGas.swap(...swapArgs);
-    const gasPrice = await this.provider.getGasPrice();
-    const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
-    const receipt = await tx.wait(1);
-    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+            underlyingAmount: underlyingAmount,
+          });
+          const receipt = await tx.wait(1);
+          Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+        }
+        break;
+    }
   }
 
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
@@ -144,9 +192,9 @@ export class Bot {
                   htoken,
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-                const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+                const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
                 if (repayAmount.gt(0)) {
-                  await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                  await this.liquidate(account, htoken, collateral, underlyingAmount, underlying);
                 }
               }
             }
@@ -176,9 +224,9 @@ export class Bot {
                 bond,
               );
               const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-              const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+              const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
               if (repayAmount.gt(0)) {
-                await this.liquidate(account, bond, collateral, swapAmount, underlying);
+                await this.liquidate(account, bond, collateral, underlyingAmount, underlying);
               }
             } else {
               break liquidateAccount;
@@ -195,7 +243,7 @@ export class Bot {
     Logger.notice("Profits will be sent to: %s", await this.signer.getAddress());
     Logger.notice("Data persistence is enabled: %s", this.persistenceEnabled);
     Logger.notice("BalanceSheet: %s", this.networkConfig.contracts.balanceSheet);
-    Logger.notice("FlashSwap: %s", this.networkConfig.contracts.strategies[UNISWAP_V2]?.flashSwap);
+    Logger.notice("FlashSwap: %s", this.networkConfig.contracts.strategies[this.selectedStrategy]?.flashSwap);
     Logger.notice("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
