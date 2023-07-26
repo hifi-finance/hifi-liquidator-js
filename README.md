@@ -53,6 +53,15 @@ $ docker-compose build
 $ docker-compose up
 ```
 
+### Using Kubernetes
+
+```bash
+$ kubectl create configmap hifi-liquidator-js-config-map --from-literal=network-name=homestead --from-literal=persistence=true --from-literal=selected-account=0 --from-literal=silent-mode=false
+$ kubectl create secret generic hifi-liquidator-js-secret --from-literal=alchemy-key="<ALCHEMY_KEY>" --from-literal=infura-key="<INFURA_KEY>" --from-literal=wallet-seed="<WALLET_SEED>"
+$ kubectl apply -f persistentvolumeclaim.yaml
+$ kubectl apply -f deployment.yaml
+```
+
 ### Using Yarn
 
 ```bash
