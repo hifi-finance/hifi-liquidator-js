@@ -37,7 +37,7 @@ $ yarn install
 
 4. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, API keys, and network information.
 
-## Usage
+## Running an Instance
 
 ### Using Docker
 
@@ -73,6 +73,25 @@ Or
 ```bash
 $ yarn build
 $ yarn start
+```
+
+## Upgrading
+The service is ran in production on via a Kubernetes cluster. Upgrades can be made as follows:
+1. After modifying the source code, update the version in package.json to `NEW_VERSION`.
+2. Rebuild the Docker image and push the new version to Docker Hub:
+```bash
+$ docker build ./ -t hififinance/hifi-liquidator-js
+$ docker tag hififinance/hifi-liquidator-js:latest hififinance/hifi-liquidator-js:<NEW_VERSION>
+$ docker push hififinance/hifi-liquidator-js:<NEW_VERSION>
+```
+3. Update the version of the Docker image in deployment.yaml to `NEW_VERSION`.
+4. Push all changes to GitHub with the commit message: `build: upgrade package version to NEW_VERSION`.
+5. Create a new GitHub release and include description of all changes made in the new version.
+6. Pull changes in the Kubernetes cluster and reset persistence and pods to run a fully updated instance:
+```bash
+$ git pull
+$ kubectl apply -f persistentvolumeclaim.yaml
+$ kubectl apply -f deployment.yaml
 ```
 
 ## Gotchas
