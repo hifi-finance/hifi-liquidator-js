@@ -1,10 +1,10 @@
 # Hifi Liquidator JS
 
-Hifi Liquidator JS is an open-source liquidation bot for the Hifi Finance protocol. It detects and liquidates bad debt, ensuring the solvency and stability of the Hifi protocol. This bot can be run by anyone, and profits generated from liquidations will be sent to the wallet specified in the configuration.
+Hifi Liquidator JS is an open-source liquidation service for the Hifi Finance protocol. It detects and liquidates bad debt, ensuring the solvency and stability of the Hifi protocol. This service can be run by anyone, and profits generated from liquidations will be sent to the wallet specified in the configuration.
 
 ## Introduction
 
-The bot monitors accounts for underwater vaults (where the debt is greater than the collateral) and liquidates them. It also handles liquidation of mature hTokens (hTokens that have reached their maturity date). The bot is written in TypeScript and can be run using Docker, Docker Compose, or Yarn.
+The service monitors accounts for underwater vaults (where the debt is greater than the collateral) and liquidates them. It also handles liquidation of mature hTokens (hTokens that have reached their maturity date). The service is written in TypeScript and can be run using Docker, Docker Compose, or Yarn.
 
 ## Getting Started
 
@@ -97,9 +97,9 @@ $ kubectl apply -f deployment.yaml
 ## Gotchas
 
 1. Ensure that your wallet has enough funds to cover gas costs and subsidize collateral for liquidations. Additionally, make sure to grant all necessary token approvals for subsidization.
-2. Double-check that the `.env` file is set up correctly, as it contains essential information needed for the smooth operation of the bot.
-3. Currently, the bot relies on new block information to initiate liquidations, which may put significant strain on API endpoints. Future enhancements could involve reacting to Chainlink price updates and implementing a cooldown period to reduce the load.
-4. To optimize API endpoint usage, consider enabling the bot's data persistence feature by setting the `PERSISTENCE` environment variable.
+2. Double-check that the `.env` file is set up correctly, as it contains essential information needed for the smooth operation of the service.
+3. Currently, the service relies on new block information to initiate liquidations, which may put significant strain on API endpoints. Future enhancements could involve reacting to Chainlink price updates and implementing a cooldown period to reduce the load.
+4. To optimize API endpoint usage, consider enabling the service's data persistence feature by setting the `PERSISTENCE` environment variable.
 
 ## Supported Chains
 
