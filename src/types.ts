@@ -31,7 +31,7 @@ export type NetworkConfig = {
   startBlock: number;
 };
 
-export type Db = {
+export type Cache = {
   default: (value: any) => void;
   get: (key: string) => {
     push: (value: any) => void;

@@ -69,11 +69,11 @@ spec:
               cpu: "0.01"
               memory: 64Mi
           volumeMounts:
-            - mountPath: /bot/db
-              name: db
+            - mountPath: /bot/cache
+              name: cache
       restartPolicy: Always
       volumes:
-        - name: db
+        - name: cache
           persistentVolumeClaim:
-            claimName: db
+            claimName: cache
 status: {}

@@ -11,6 +11,6 @@ services:
       SELECTED_STRATEGY: ${SELECTED_STRATEGY:-uniswap-v3}
       WALLET_SEED: $WALLET_SEED
     volumes:
-      - db:/bot/db
+      - cache:/bot/cache
 volumes:
-  db:
+  cache:

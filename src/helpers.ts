@@ -58,12 +58,12 @@ export function getUniswapV2PairInfo({
   return { token0, token1, pair };
 }
 
-export function initDb(persistent: boolean, name: string) {
+export function initCache(persistent: boolean, name: string) {
   if (persistent) {
-    if (!fs.existsSync("db")) {
-      fs.mkdirSync("db");
+    if (!fs.existsSync("cache")) {
+      fs.mkdirSync("cache");
     }
-    return new StormDB(new StormDB.localFileEngine("db/" + name + ".json"));
+    return new StormDB(new StormDB.localFileEngine("cache/" + name + ".json"));
   } else {
     const mem: { data: any } = { data: [] };
     return {

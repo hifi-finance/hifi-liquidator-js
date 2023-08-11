@@ -7,8 +7,8 @@ import {
   UNISWAP_V3,
   VAULTS,
 } from "../constants";
-import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
-import { BotArgs, Db, Htokens, NetworkConfig, Vault, Vaults } from "../types";
+import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initCache } from "../helpers";
+import { BotArgs, Cache, Htokens, NetworkConfig, Vault, Vaults } from "../types";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
@@ -21,7 +21,7 @@ import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/c
 import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 export class Bot {
-  private db: Db;
+  private cache: Cache;
   private deployments: {
     balanceSheet: BalanceSheetV2;
     flashUniswapV3?: IFlashUniswapV3;
@@ -34,8 +34,8 @@ export class Bot {
   private signer;
 
   constructor(args: BotArgs) {
-    this.db = initDb(args.persistenceEnabled, args.provider.network.name);
-    this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
+    this.cache = initCache(args.persistenceEnabled, args.provider.network.name);
+    this.cache.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.isBusy = false;
     this.networkConfig = args.networkConfig;
     this.persistenceEnabled = args.persistenceEnabled;
@@ -69,11 +69,11 @@ export class Bot {
   }
 
   private htokens(): Htokens {
-    return this.db.get(HTOKENS).value();
+    return this.cache.get(HTOKENS).value();
   }
 
   private vaults(): Vaults {
-    return this.db.get(VAULTS).value();
+    return this.cache.get(VAULTS).value();
   }
 
   // effects
@@ -89,8 +89,8 @@ export class Bot {
         underlying,
         underlyingPrecisionScalar,
       };
-      this.db.set(HTOKENS, htokens);
-      await this.db.save();
+      this.cache.set(HTOKENS, htokens);
+      await this.cache.save();
     }
   }
 
@@ -98,8 +98,8 @@ export class Bot {
     const htokens = this.htokens();
     if (htokens[htoken] !== undefined) {
       delete htokens[htoken];
-      this.db.set(HTOKENS, htokens);
-      await this.db.save();
+      this.cache.set(HTOKENS, htokens);
+      await this.cache.save();
     }
   }
 
@@ -244,7 +244,7 @@ export class Bot {
     Logger.notice("Data persistence is enabled: %s", this.persistenceEnabled);
     Logger.notice("BalanceSheet: %s", this.networkConfig.contracts.balanceSheet);
     Logger.notice("FlashSwap: %s", this.networkConfig.contracts.strategies[this.selectedStrategy]?.flashSwap);
-    Logger.notice("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
+    Logger.notice("Last synced block: %s", Math.max(this.cache.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
     // TODO: respond to Chainlink price update instead of new block
@@ -268,7 +268,7 @@ export class Bot {
 
   private async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
-    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.networkConfig.startBlock;
+    const startBlock = this.cache.get(LAST_SYNCED_BLOCK).value() + 1 || this.networkConfig.startBlock;
     // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
     const borrowEvents = await batchQueryFilter(
       this.deployments.balanceSheet,
@@ -302,8 +302,8 @@ export class Bot {
       const { account, collateral }: { account: string; collateral: string } = event.decode(event.data, event.topics);
       await this.updateVaults(account, "push", { collaterals: collateral });
     }
-    this.db.set(LAST_SYNCED_BLOCK, latestBlock);
-    await this.db.save();
+    this.cache.set(LAST_SYNCED_BLOCK, latestBlock);
+    await this.cache.save();
   }
 
   private async updateVaults(
@@ -328,7 +328,7 @@ export class Bot {
         vaults[account][key] = [...vaults[account][key], fragment[key]];
       }
     }
-    this.db.set(VAULTS, vaults);
-    await this.db.save();
+    this.cache.set(VAULTS, vaults);
+    await this.cache.save();
   }
 }
