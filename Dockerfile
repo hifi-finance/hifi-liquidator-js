@@ -1,6 +1,6 @@
 FROM node:16-slim AS base
 LABEL author="scorpion9979 <ahmed.i.tawefeeq@protonmail.com>"
-WORKDIR /bot
+WORKDIR /liquidator
 
 # 1. Cache dependencies.
 FROM base AS cache
@@ -25,7 +25,7 @@ RUN yarn build
 
 # 3. Runtime environment.
 FROM base AS release
-COPY --from=build /bot/dist ./dist
-COPY --from=build /bot/package.json ./
-COPY --from=cache /bot/node_modules ./node_modules
+COPY --from=build /liquidator/dist ./dist
+COPY --from=build /liquidator/package.json ./
+COPY --from=cache /liquidator/node_modules ./node_modules
 ENTRYPOINT yarn start

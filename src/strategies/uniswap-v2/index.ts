@@ -6,9 +6,9 @@ import {
   UNISWAP_V2_INIT_CODE_HASH,
   UNISWAP_V3,
   VAULTS,
-} from "../constants";
-import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initCache } from "../helpers";
-import { BotArgs, Cache, Htokens, NetworkConfig, Vault, Vaults } from "../types";
+} from "../../constants";
+import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initCache } from "../../helpers";
+import { StrategyArgs, Cache, Htokens, NetworkConfig, Vault, Vaults } from "../../types";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
@@ -20,7 +20,7 @@ import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/con
 import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/core/h-token/HToken__factory";
 import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
-export class Bot {
+export class Strategy {
   private cache: Cache;
   private deployments: {
     balanceSheet: BalanceSheetV2;
@@ -33,7 +33,7 @@ export class Bot {
   private selectedStrategy;
   private signer;
 
-  constructor(args: BotArgs) {
+  constructor(args: StrategyArgs) {
     this.cache = initCache(args.persistenceEnabled, args.provider.network.name);
     this.cache.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.isBusy = false;
