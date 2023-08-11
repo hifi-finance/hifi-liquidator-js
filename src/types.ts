@@ -5,7 +5,6 @@ export type StrategyArgs = {
   networkConfig: NetworkConfig;
   persistenceEnabled: boolean;
   provider: Provider;
-  selectedStrategy: StrategyName;
   signer: Wallet;
 };
 

@@ -1,6 +1,7 @@
 import { getFlashbotsURL, isTrueSet } from "./helpers";
 import * as networkConfig from "./network-config.json";
 import { Strategy as UniswapV2Strategy } from "./strategies/uniswap-v2";
+import { Strategy as UniswapV3Strategy } from "./strategies/uniswap-v3";
 import { NetworkName, StrategyName } from "./types";
 import { Wallet, providers, utils } from "ethers";
 
@@ -15,21 +16,36 @@ const { NETWORK_NAME, SELECTED_STRATEGY } = process.env as {
   SELECTED_STRATEGY: StrategyName;
 };
 
-const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
+function main() {
+  const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
+  const provider = networkConfig[NETWORK_NAME].flashbotsEnabled
+    ? new providers.JsonRpcProvider(getFlashbotsURL(NETWORK_NAME), NETWORK_NAME)
+    : new providers.FallbackProvider([
+        new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
+        new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
+      ]);
 
-const provider = networkConfig[NETWORK_NAME].flashbotsEnabled
-  ? new providers.JsonRpcProvider(getFlashbotsURL(NETWORK_NAME), NETWORK_NAME)
-  : new providers.FallbackProvider([
-      new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
-      new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
-    ]);
+  const signer = new Wallet(account, provider);
 
-const signer = new Wallet(account, provider);
+  switch (SELECTED_STRATEGY) {
+    case "uniswap-v3":
+      new UniswapV3Strategy({
+        networkConfig: networkConfig[NETWORK_NAME],
+        persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
+        provider,
+        signer,
+      }).run();
+      break;
+    default:
+    case "uniswap-v2":
+      new UniswapV2Strategy({
+        networkConfig: networkConfig[NETWORK_NAME],
+        persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
+        provider,
+        signer,
+      }).run();
+      break;
+  }
+}
 
-new UniswapV2Strategy({
-  networkConfig: networkConfig[NETWORK_NAME],
-  persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
-  provider,
-  selectedStrategy: SELECTED_STRATEGY,
-  signer,
-}).run();
+main();
