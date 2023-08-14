@@ -6,7 +6,7 @@
 !.yarn/sdks
 !.yarn/versions
 build/
-db/
+cache/
 dist/
 node_modules/
 

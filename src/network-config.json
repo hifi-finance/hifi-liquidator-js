@@ -1,0 +1,31 @@
+{
+  "homestead": {
+    "contracts": {
+      "balanceSheet": "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b",
+      "strategies": {
+        "uniswap-v2": {
+          "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+          "flashSwap": "0x529D440aCa6D7Ad6c8Fe2423d78DB7Ef95460435"
+        },
+        "uniswap-v3": {
+          "flashSwap": "0x784Fa7faf8b160a0B5BCd84aB974c5AaD742F108"
+        }
+      }
+    },
+    "flashbotsEnabled": true,
+    "startBlock": 16228745
+  },
+  "matic": {
+    "contracts": {
+      "balanceSheet": "0xd2abC684c94603Cf3Eb72a0dAAAdE8943a754282",
+      "strategies": {
+        "uniswap-v2": {
+          "factory": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
+          "flashSwap": "0x4D349A76321eBc9fF8313f23967Ad913720bbda3"
+        }
+      }
+    },
+    "flashbotsEnabled": false,
+    "startBlock": 30144233
+  }
+}

@@ -1,56 +1,51 @@
-import { Logger, addressesAreEqual, batchQueryFilter, getUniswapV2PairInfo, initDb } from "../helpers";
-import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "./constants";
-import { Args, Db, Htokens, Vault, Vaults } from "./types";
-import { MinInt256 } from "@ethersproject/constants";
-import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
-import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v2/IUniswapV2Pair__factory";
+import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, UNISWAP_V2, VAULTS } from "../constants";
+import { Logger, batchQueryFilter, initCache } from "../helpers";
+import { StrategyArgs, Cache, Htokens, NetworkConfig, Vault, Vaults, StrategyName } from "../types";
 import { BalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/BalanceSheetV2";
 import { HToken } from "@hifi/protocol/dist/types/contracts/core/h-token/HToken";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
 import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/core/h-token/HToken__factory";
-import { BigNumber, BigNumberish, Contract, utils } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
-export class Bot {
-  private db: Db;
-  private deployments: {
-    balanceSheet: BalanceSheetV2;
-  };
-  private isBusy;
-  private network;
-  private persistence;
-  private provider;
-  private signer;
+export abstract class BaseStrategy {
+  protected cache: Cache;
+  protected balanceSheet: BalanceSheetV2;
+  protected isBusy;
+  protected networkConfig: NetworkConfig;
+  protected persistenceEnabled;
+  protected provider;
+  protected strategyName: StrategyName;
+  protected signer;
 
-  constructor(args: Args) {
-    this.db = initDb(args.persistence, args.provider.network.name);
-    this.db.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
+  constructor(args: StrategyArgs & { strategyName: StrategyName }) {
+    this.cache = initCache(args.persistenceEnabled, args.provider.network.name);
+    this.cache.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.isBusy = false;
-    this.network = args.network;
-    this.persistence = args.persistence;
+    this.networkConfig = args.networkConfig;
+    this.persistenceEnabled = args.persistenceEnabled;
     this.provider = args.provider;
     this.signer = args.signer;
+    this.strategyName = args.strategyName;
 
-    this.deployments = {
-      balanceSheet: new Contract(
-        this.network.contracts.balanceSheet,
-        BalanceSheetV2__factory.abi,
-        this.signer,
-      ) as BalanceSheetV2,
-    };
+    this.balanceSheet = new Contract(
+      this.networkConfig.contracts.balanceSheet,
+      BalanceSheetV2__factory.abi,
+      this.signer,
+    ) as BalanceSheetV2;
   }
 
   // getter methods
   private async isUnderwater(account: string): Promise<boolean> {
-    const { shortfallLiquidity } = await this.deployments.balanceSheet.getCurrentAccountLiquidity(account);
+    const { shortfallLiquidity } = await this.balanceSheet.getCurrentAccountLiquidity(account);
     return shortfallLiquidity.gt(0);
   }
 
   private htokens(): Htokens {
-    return this.db.get(HTOKENS).value();
+    return this.cache.get(HTOKENS).value();
   }
 
   private vaults(): Vaults {
-    return this.db.get(VAULTS).value();
+    return this.cache.get(VAULTS).value();
   }
 
   // effects
@@ -66,8 +61,8 @@ export class Bot {
         underlying,
         underlyingPrecisionScalar,
       };
-      this.db.set(HTOKENS, htokens);
-      await this.db.save();
+      this.cache.set(HTOKENS, htokens);
+      await this.cache.save();
     }
   }
 
@@ -75,52 +70,18 @@ export class Bot {
     const htokens = this.htokens();
     if (htokens[htoken] !== undefined) {
       delete htokens[htoken];
-      this.db.set(HTOKENS, htokens);
-      await this.db.save();
+      this.cache.set(HTOKENS, htokens);
+      await this.cache.save();
     }
   }
 
-  private async liquidate(
-    account: string,
-    bond: string,
-    collateral: string,
-    swapAmount: BigNumber,
-    underlying: string,
-  ): Promise<void> {
-    const { pair, token0, token1 } = addressesAreEqual(collateral, underlying)
-      ? this.network.uniswap.underlyingPairs[underlying]
-      : getUniswapV2PairInfo({
-          factoryAddress: this.network.uniswap.factory,
-          initCodeHash: this.network.uniswap.initCodeHash,
-          tokenA: collateral,
-          tokenB: underlying,
-        });
-    const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
-    // TODO: profitibility calculation for liquidation
-    // TODO: pop the collateral from persistence list after liquidation
-    const swapArgs: [BigNumberish, BigNumberish, string, string] = [
-      addressesAreEqual(token0, underlying) ? swapAmount : 0,
-      addressesAreEqual(token1, underlying) ? swapAmount : 0,
-      this.network.contracts.flashSwap,
-      utils.defaultAbiCoder.encode(
-        ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
-        [
-          {
-            borrower: account,
-            bond: bond,
-            collateral: collateral,
-            turnout: MinInt256,
-          },
-        ],
-      ),
-    ];
-    // TODO: profitibility calculation (including gas)
-    const gasLimit = await contract.estimateGas.swap(...swapArgs);
-    const gasPrice = await this.provider.getGasPrice();
-    const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
-    const receipt = await tx.wait(1);
-    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
-  }
+  protected abstract liquidate(
+    _account: string,
+    _bond: string,
+    _collateral: string,
+    _underlyingAmount: BigNumber,
+    _underlying: string,
+  ): Promise<void>;
 
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
     const vaults = this.vaults();
@@ -132,21 +93,21 @@ export class Bot {
         for (const account of accounts) {
           const { bonds, collaterals } = vaults[account];
           if (bonds.includes(htoken)) {
-            const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
+            const debtAmount = await this.balanceSheet.getDebtAmount(account, htoken);
             if (debtAmount.gt(0)) {
               const { underlying, underlyingPrecisionScalar } = htokens[htoken];
               for (const collateral of collaterals) {
-                const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
-                const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, htoken);
-                const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
+                const collateralAmount = await this.balanceSheet.getCollateralAmount(account, collateral);
+                const debtAmount = await this.balanceSheet.getDebtAmount(account, htoken);
+                const hypotheticalRepayAmount = await this.balanceSheet.getRepayAmount(
                   collateral,
                   collateralAmount,
                   htoken,
                 );
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-                const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+                const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
                 if (repayAmount.gt(0)) {
-                  await this.liquidate(account, htoken, collateral, swapAmount, underlying);
+                  await this.liquidate(account, htoken, collateral, underlyingAmount, underlying);
                 }
               }
             }
@@ -168,17 +129,17 @@ export class Bot {
           const { underlying, underlyingPrecisionScalar } = this.htokens()[bond];
           for (const collateral of collaterals) {
             if (await this.isUnderwater(account)) {
-              const collateralAmount = await this.deployments.balanceSheet.getCollateralAmount(account, collateral);
-              const debtAmount = await this.deployments.balanceSheet.getDebtAmount(account, bond);
-              const hypotheticalRepayAmount = await this.deployments.balanceSheet.getRepayAmount(
+              const collateralAmount = await this.balanceSheet.getCollateralAmount(account, collateral);
+              const debtAmount = await this.balanceSheet.getDebtAmount(account, bond);
+              const hypotheticalRepayAmount = await this.balanceSheet.getRepayAmount(
                 collateral,
                 collateralAmount,
                 bond,
               );
               const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
-              const swapAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
+              const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
               if (repayAmount.gt(0)) {
-                await this.liquidate(account, bond, collateral, swapAmount, underlying);
+                await this.liquidate(account, bond, collateral, underlyingAmount, underlying);
               }
             } else {
               break liquidateAccount;
@@ -192,11 +153,12 @@ export class Bot {
   public async run(): Promise<void> {
     Logger.notice("Starting Hifi liquidator");
     Logger.notice("Network: %s", this.provider.network.name);
+    Logger.notice("Selected strategy: %s", this.strategyName);
     Logger.notice("Profits will be sent to: %s", await this.signer.getAddress());
-    Logger.notice("Data persistence is enabled: %s", this.persistence);
-    Logger.notice("BalanceSheet: %s", this.network.contracts.balanceSheet);
-    Logger.notice("flashSwap: %s", this.network.contracts.flashSwap);
-    Logger.notice("Last synced block: %s", Math.max(this.db.get(LAST_SYNCED_BLOCK).value(), 0));
+    Logger.notice("Data persistence is enabled: %s", this.persistenceEnabled);
+    Logger.notice("BalanceSheet: %s", this.networkConfig.contracts.balanceSheet);
+    Logger.notice("FlashSwap: %s", this.networkConfig.contracts.strategies[this.strategyName]?.flashSwap);
+    Logger.notice("Last synced block: %s", Math.max(this.cache.get(LAST_SYNCED_BLOCK).value(), 0));
 
     await this.syncAll();
     // TODO: respond to Chainlink price update instead of new block
@@ -220,17 +182,17 @@ export class Bot {
 
   private async syncAll(_latestBlock?: number): Promise<void> {
     const latestBlock = _latestBlock !== undefined ? _latestBlock : await this.provider.getBlockNumber();
-    const startBlock = this.db.get(LAST_SYNCED_BLOCK).value() + 1 || this.network.startBlock;
+    const startBlock = this.cache.get(LAST_SYNCED_BLOCK).value() + 1 || this.networkConfig.startBlock;
     // TODO: cross-check debt amounts with RepayBorrow event to ignore 0 debt bonds
     const borrowEvents = await batchQueryFilter(
-      this.deployments.balanceSheet,
-      this.deployments.balanceSheet.filters.Borrow(null, null, null),
+      this.balanceSheet,
+      this.balanceSheet.filters.Borrow(null, null, null),
       startBlock,
       latestBlock,
     );
     const depositEvents = await batchQueryFilter(
-      this.deployments.balanceSheet,
-      this.deployments.balanceSheet.filters.DepositCollateral(null, null, null),
+      this.balanceSheet,
+      this.balanceSheet.filters.DepositCollateral(null, null, null),
       startBlock,
       latestBlock,
     );
@@ -254,8 +216,8 @@ export class Bot {
       const { account, collateral }: { account: string; collateral: string } = event.decode(event.data, event.topics);
       await this.updateVaults(account, "push", { collaterals: collateral });
     }
-    this.db.set(LAST_SYNCED_BLOCK, latestBlock);
-    await this.db.save();
+    this.cache.set(LAST_SYNCED_BLOCK, latestBlock);
+    await this.cache.save();
   }
 
   private async updateVaults(
@@ -280,7 +242,7 @@ export class Bot {
         vaults[account][key] = [...vaults[account][key], fragment[key]];
       }
     }
-    this.db.set(VAULTS, vaults);
-    await this.db.save();
+    this.cache.set(VAULTS, vaults);
+    await this.cache.save();
   }
 }

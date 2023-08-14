@@ -39,16 +39,21 @@ spec:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
                   key: network-name
-            - name: PERSISTENCE
+            - name: PERSISTENCE_ENABLED
               valueFrom:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
-                  key: persistence
+                  key: persistence-enabled
             - name: SELECTED_ACCOUNT
               valueFrom:
                 configMapKeyRef:
                   name: hifi-liquidator-js-config-map
                   key: selected-account
+            - name: SELECTED_STRATEGY
+              valueFrom:
+                configMapKeyRef:
+                  name: hifi-liquidator-js-config-map
+                  key: selected-strategy
             - name: WALLET_SEED
               valueFrom:
                 secretKeyRef:
@@ -64,11 +69,11 @@ spec:
               cpu: "0.01"
               memory: 64Mi
           volumeMounts:
-            - mountPath: /bot/db
-              name: db
+            - mountPath: /liquidator/cache
+              name: cache
       restartPolicy: Always
       volumes:
-        - name: db
+        - name: cache
           persistentVolumeClaim:
-            claimName: db
+            claimName: cache
 status: {}
