@@ -1,10 +1,10 @@
 # Hifi Liquidator JS
 
-Hifi Liquidator JS is an open-source liquidation bot for the Hifi Finance protocol. It detects and liquidates bad debt, ensuring the solvency and stability of the Hifi protocol. This bot can be run by anyone, and profits generated from liquidations will be sent to the wallet specified in the configuration.
+Hifi Liquidator JS is an open-source liquidation service for the Hifi Finance protocol. It detects and liquidates bad debt, ensuring the solvency and stability of the Hifi protocol. This service can be run by anyone, and profits generated from liquidations will be sent to the wallet specified in the configuration.
 
 ## Introduction
 
-The bot monitors accounts for underwater vaults (where the debt is greater than the collateral) and liquidates them. It also handles liquidation of mature hTokens (hTokens that have reached their maturity date). The bot is written in TypeScript and can be run using Docker, Docker Compose, or Yarn.
+The service monitors accounts for underwater vaults (where the debt is greater than the collateral) and liquidates them. It also handles liquidation of mature hTokens (hTokens that have reached their maturity date). The service is written in TypeScript and can be run using Docker, Docker Compose, or Yarn.
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ $ yarn install
 
 4. Create a .env file and follow the `.env.example` file to add the requisite environment variables. This includes your wallet seed, selected account, selected liquidation strategy, API keys, and network information.
 
-## Usage
+## Running an Instance
 
 ### Using Docker
 
@@ -53,6 +53,15 @@ $ docker-compose build
 $ docker-compose up
 ```
 
+### Using Kubernetes
+
+```bash
+$ kubectl create configmap hifi-liquidator-js-config-map --from-literal=network-name=homestead --from-literal=persistence=true --from-literal=selected-account=0 --from-literal=silent-mode=false
+$ kubectl create secret generic hifi-liquidator-js-secret --from-literal=alchemy-key="<ALCHEMY_KEY>" --from-literal=infura-key="<INFURA_KEY>" --from-literal=wallet-seed="<WALLET_SEED>"
+$ kubectl apply -f persistentvolumeclaim.yaml
+$ kubectl apply -f deployment.yaml
+```
+
 ### Using Yarn
 
 ```bash
@@ -64,6 +73,30 @@ Or
 ```bash
 $ yarn build
 $ yarn start
+```
+
+## Upgrading
+
+The service is ran in production on via a Kubernetes cluster. Upgrades can be made as follows:
+
+1. After modifying the source code, update the version in package.json to `NEW_VERSION`.
+2. Rebuild the Docker image and push the new version to Docker Hub:
+
+```bash
+$ docker build ./ -t hififinance/hifi-liquidator-js
+$ docker tag hififinance/hifi-liquidator-js:latest hififinance/hifi-liquidator-js:<NEW_VERSION>
+$ docker push hififinance/hifi-liquidator-js:<NEW_VERSION>
+```
+
+3. Update the version of the Docker image in deployment.yaml to `NEW_VERSION`.
+4. Push all changes to GitHub with the commit message: `build: upgrade package version to NEW_VERSION`.
+5. Create a new GitHub release and include description of all changes made in the new version.
+6. Pull changes in the Kubernetes cluster and reset persistence and pods to run a fully updated instance:
+
+```bash
+$ git pull
+$ kubectl apply -f persistentvolumeclaim.yaml
+$ kubectl apply -f deployment.yaml
 ```
 
 ## Gotchas
