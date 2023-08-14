@@ -14,10 +14,10 @@ export abstract class BaseStrategy {
   protected networkConfig: NetworkConfig;
   protected persistenceEnabled;
   protected provider;
-  protected strategyName: StrategyName | null = null;
+  protected strategyName: StrategyName;
   protected signer;
 
-  constructor(args: StrategyArgs) {
+  constructor(args: StrategyArgs & { strategyName: StrategyName }) {
     this.cache = initCache(args.persistenceEnabled, args.provider.network.name);
     this.cache.default({ htokens: {}, lastSyncedBlock: -1, vaults: {} });
     this.isBusy = false;
@@ -25,6 +25,7 @@ export abstract class BaseStrategy {
     this.persistenceEnabled = args.persistenceEnabled;
     this.provider = args.provider;
     this.signer = args.signer;
+    this.strategyName = args.strategyName;
 
     this.balanceSheet = new Contract(
       this.networkConfig.contracts.balanceSheet,
@@ -152,9 +153,6 @@ export abstract class BaseStrategy {
   public async run(): Promise<void> {
     Logger.notice("Starting Hifi liquidator");
     Logger.notice("Network: %s", this.provider.network.name);
-    if (!this.strategyName) {
-      throw new Error("No strategy selected");
-    }
     Logger.notice("Selected strategy: %s", this.strategyName);
     Logger.notice("Profits will be sent to: %s", await this.signer.getAddress());
     Logger.notice("Data persistence is enabled: %s", this.persistenceEnabled);

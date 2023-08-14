@@ -10,8 +10,7 @@ export class Strategy extends BaseStrategy {
   private flashUniswapV3: IFlashUniswapV3;
 
   constructor(args: StrategyArgs) {
-    super(args);
-    this.strategyName = "uniswap-v3";
+    super({ ...args, strategyName: "uniswap-v3" });
 
     if (!this.networkConfig.contracts.strategies["uniswap-v3"]) {
       throw new Error("Uniswap V3 strategy is not supported on " + this.provider.network.name);
@@ -30,9 +29,6 @@ export class Strategy extends BaseStrategy {
     underlyingAmount: BigNumber,
     _underlying: string,
   ): Promise<void> {
-    if (!this.flashUniswapV3) {
-      throw new Error("FlashUniswapV3 contract not initialized");
-    }
     const tx = await this.flashUniswapV3.flashLiquidate({
       borrower: account,
       bond: bond,

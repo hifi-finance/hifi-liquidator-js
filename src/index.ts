@@ -24,26 +24,22 @@ function main() {
         new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
         new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
       ]);
-
   const signer = new Wallet(account, provider);
+
+  const args = {
+    networkConfig: networkConfig[NETWORK_NAME],
+    persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
+    provider,
+    signer,
+  };
 
   switch (SELECTED_STRATEGY) {
     case "uniswap-v3":
-      new UniswapV3Strategy({
-        networkConfig: networkConfig[NETWORK_NAME],
-        persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
-        provider,
-        signer,
-      }).run();
+      new UniswapV3Strategy(args).run();
       break;
     default:
     case "uniswap-v2":
-      new UniswapV2Strategy({
-        networkConfig: networkConfig[NETWORK_NAME],
-        persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
-        provider,
-        signer,
-      }).run();
+      new UniswapV2Strategy(args).run();
       break;
   }
 }

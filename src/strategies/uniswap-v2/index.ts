@@ -1,4 +1,4 @@
-import { UNISWAP_V2, UNISWAP_V2_INIT_CODE_HASH } from "../../constants";
+import { UNISWAP_V2_INIT_CODE_HASH } from "../../constants";
 import { Logger, addressesAreEqual, getUniswapV2PairInfo } from "../../helpers";
 import { StrategyArgs } from "../../types";
 import { BaseStrategy } from "../base";
@@ -9,8 +9,7 @@ import { BigNumber, BigNumberish, Contract, utils } from "ethers";
 
 export class Strategy extends BaseStrategy {
   constructor(args: StrategyArgs) {
-    super(args);
-    this.strategyName = "uniswap-v2";
+    super({ ...args, strategyName: "uniswap-v2" });
   }
 
   protected async liquidate(
@@ -20,11 +19,11 @@ export class Strategy extends BaseStrategy {
     underlyingAmount: BigNumber,
     underlying: string,
   ): Promise<void> {
-    if (!this.networkConfig.contracts.strategies[UNISWAP_V2]) {
+    if (!this.networkConfig.contracts.strategies["uniswap-v2"]) {
       throw new Error("Uniswap V2 strategy is not supported on " + this.provider.network.name);
     }
     const { pair, token0, token1 } = getUniswapV2PairInfo({
-      factoryAddress: this.networkConfig.contracts.strategies[UNISWAP_V2].factory,
+      factoryAddress: this.networkConfig.contracts.strategies["uniswap-v2"].factory,
       initCodeHash: UNISWAP_V2_INIT_CODE_HASH,
       tokenA: collateral,
       tokenB: underlying,
@@ -35,7 +34,7 @@ export class Strategy extends BaseStrategy {
     const swapArgs: [BigNumberish, BigNumberish, string, string] = [
       addressesAreEqual(token0, underlying) ? underlyingAmount : 0,
       addressesAreEqual(token1, underlying) ? underlyingAmount : 0,
-      this.networkConfig.contracts.strategies[UNISWAP_V2].flashSwap,
+      this.networkConfig.contracts.strategies["uniswap-v2"].flashSwap,
       utils.defaultAbiCoder.encode(
         ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
         [

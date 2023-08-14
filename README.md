@@ -65,13 +65,6 @@ $ kubectl apply -f deployment.yaml
 ### Using Yarn
 
 ```bash
-$ yarn dev
-```
-
-Or
-
-```bash
-$ yarn build
 $ yarn start
 ```
 
