@@ -56,7 +56,7 @@ $ docker-compose up
 ### Using Kubernetes
 
 ```bash
-$ kubectl create configmap hifi-liquidator-js-config-map --from-literal=network-name=homestead --from-literal=persistence=true --from-literal=selected-account=0 --from-literal=silent-mode=false
+$ kubectl create configmap hifi-liquidator-js-config-map --from-literal=network-name=homestead --from-literal=persistence=true --from-literal=selected-account=0 --from-literal=silent-mode=false --from-literal=selected-strategy=uniswap-v3
 $ kubectl create secret generic hifi-liquidator-js-secret --from-literal=alchemy-key="<ALCHEMY_KEY>" --from-literal=infura-key="<INFURA_KEY>" --from-literal=wallet-seed="<WALLET_SEED>"
 $ kubectl apply -f persistentvolumeclaim.yaml
 $ kubectl apply -f deployment.yaml
@@ -95,9 +95,9 @@ $ kubectl apply -f deployment.yaml
 ## Gotchas
 
 1. Ensure that your wallet has enough funds to cover gas costs and subsidize collateral for liquidations. Additionally, make sure to grant all necessary token approvals for subsidization.
-2. Double-check that the `.env` file is set up correctly, as it contains essential information needed for the smooth operation of the bot.
-3. Currently, the bot relies on new block information to initiate liquidations, which may put significant strain on API endpoints. Future enhancements could involve reacting to Chainlink price updates and implementing a cooldown period to reduce the load.
-4. To optimize API endpoint usage, consider enabling the bot's data persistence feature by setting the `PERSISTENCE_ENABLED` environment variable.
+2. Double-check that the `.env` file is set up correctly, as it contains essential information needed for the smooth operation of the service.
+3. Currently, the service relies on new block information to initiate liquidations, which may put significant strain on API endpoints. Future enhancements could involve reacting to Chainlink price updates and implementing a cooldown period to reduce the load.
+4. To optimize API endpoint usage, consider enabling the service's data persistence feature by setting the `PERSISTENCE_ENABLED` environment variable.
 
 ## Supported Chains
 
