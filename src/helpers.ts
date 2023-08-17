@@ -78,7 +78,7 @@ export function initCache(persistent: boolean, name: string) {
   }
 }
 
-export function isTrueSet(val: any) {
+export function isTrueString(val: any) {
   return val?.toLowerCase() === "true";
 }
 

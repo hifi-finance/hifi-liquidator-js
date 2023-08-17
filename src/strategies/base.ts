@@ -30,7 +30,7 @@ export abstract class BaseStrategy {
     this.balanceSheet = new Contract(
       this.networkConfig.contracts.balanceSheet,
       BalanceSheetV2__factory.abi,
-      this.signer,
+      this.provider,
     ) as BalanceSheetV2;
   }
 
@@ -52,7 +52,7 @@ export abstract class BaseStrategy {
   private async cacheHtoken(htoken: string): Promise<void> {
     const htokens = this.htokens();
     if (htokens[htoken] === undefined) {
-      const contract = new Contract(htoken, HToken__factory.abi, this.signer) as HToken;
+      const contract = new Contract(htoken, HToken__factory.abi, this.provider) as HToken;
       const maturity = (await contract.maturity()).toNumber();
       const underlying = await contract.underlying();
       const underlyingPrecisionScalar = (await contract.underlyingPrecisionScalar()).toNumber();

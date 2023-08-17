@@ -1,4 +1,4 @@
-import { getFlashbotsURL, isTrueSet } from "./helpers";
+import { getFlashbotsURL, isTrueString } from "./helpers";
 import * as networkConfig from "./network-config.json";
 import { Strategy as UniswapV2Strategy } from "./strategies/uniswap-v2";
 import { Strategy as UniswapV3Strategy } from "./strategies/uniswap-v3";
@@ -17,20 +17,22 @@ const { NETWORK_NAME, SELECTED_STRATEGY } = process.env as {
 };
 
 function main() {
-  const account = utils.HDNode.fromMnemonic(WALLET_SEED as string).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
-  const provider = networkConfig[NETWORK_NAME].flashbotsEnabled
-    ? new providers.JsonRpcProvider(getFlashbotsURL(NETWORK_NAME), NETWORK_NAME)
-    : new providers.FallbackProvider([
-        new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
-        new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
-      ]);
-  const signer = new Wallet(account, provider);
+  const account = utils.HDNode.fromMnemonic(WALLET_SEED).derivePath(`m/44'/60'/0'/0/${SELECTED_ACCOUNT}`);
+  const defaultProvider = new providers.FallbackProvider([
+    new providers.AlchemyProvider(NETWORK_NAME, ALCHEMY_KEY),
+    new providers.InfuraProvider(NETWORK_NAME, INFURA_KEY),
+  ]);
+  const flashbotsProvider = new providers.JsonRpcProvider(getFlashbotsURL(NETWORK_NAME), NETWORK_NAME);
+  const signer = new Wallet(
+    account,
+    networkConfig[NETWORK_NAME].flashbotsEnabled ? flashbotsProvider : defaultProvider,
+  );
 
   const args = {
     networkConfig: networkConfig[NETWORK_NAME],
-    persistenceEnabled: isTrueSet(PERSISTENCE_ENABLED),
-    provider,
-    signer,
+    persistenceEnabled: isTrueString(PERSISTENCE_ENABLED),
+    provider: defaultProvider,
+    signer: signer,
   };
 
   switch (SELECTED_STRATEGY) {
