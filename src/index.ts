@@ -36,12 +36,12 @@ function main() {
   };
 
   switch (SELECTED_STRATEGY) {
-    case "uniswap-v3":
-      new UniswapV3Strategy(args).run();
-      break;
-    default:
     case "uniswap-v2":
       new UniswapV2Strategy(args).run();
+      break;
+    default:
+    case "uniswap-v3":
+      new UniswapV3Strategy(args).run();
       break;
   }
 }

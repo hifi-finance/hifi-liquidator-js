@@ -1,15 +1,15 @@
 import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, UNISWAP_V2, VAULTS } from "../constants";
 import { Logger, batchQueryFilter, initCache } from "../helpers";
 import { StrategyArgs, Cache, Htokens, NetworkConfig, Vault, Vaults, StrategyName } from "../types";
-import { BalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/BalanceSheetV2";
-import { HToken } from "@hifi/protocol/dist/types/contracts/core/h-token/HToken";
+import { IBalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/IBalanceSheetV2";
+import { IHToken } from "@hifi/protocol/dist/types/contracts/core/h-token/IHToken";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
 import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/core/h-token/HToken__factory";
 import { BigNumber, Contract } from "ethers";
 
 export abstract class BaseStrategy {
   protected cache: Cache;
-  protected balanceSheet: BalanceSheetV2;
+  protected balanceSheet: IBalanceSheetV2;
   protected isBusy;
   protected networkConfig: NetworkConfig;
   protected persistenceEnabled;
@@ -31,7 +31,7 @@ export abstract class BaseStrategy {
       this.networkConfig.contracts.balanceSheet,
       BalanceSheetV2__factory.abi,
       this.provider,
-    ) as BalanceSheetV2;
+    ) as IBalanceSheetV2;
   }
 
   // getter methods
@@ -52,7 +52,7 @@ export abstract class BaseStrategy {
   private async cacheHtoken(htoken: string): Promise<void> {
     const htokens = this.htokens();
     if (htokens[htoken] === undefined) {
-      const contract = new Contract(htoken, HToken__factory.abi, this.provider) as HToken;
+      const contract = new Contract(htoken, HToken__factory.abi, this.provider) as IHToken;
       const maturity = (await contract.maturity()).toNumber();
       const underlying = await contract.underlying();
       const underlyingPrecisionScalar = (await contract.underlyingPrecisionScalar()).toNumber();
