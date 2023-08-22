@@ -28,4 +28,4 @@ FROM base AS release
 COPY --from=build /liquidator/dist ./dist
 COPY --from=build /liquidator/package.json ./
 COPY --from=cache /liquidator/node_modules ./node_modules
-ENTRYPOINT yarn start
+ENTRYPOINT node .

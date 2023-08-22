@@ -1,10 +1,9 @@
-import { Logger } from "../../helpers";
 import { StrategyArgs } from "../../types";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
 import { FlashUniswapV3__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v3/FlashUniswapV3__factory";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, BigNumberish, Contract, ContractReceipt } from "ethers";
 
 export class Strategy extends BaseStrategy {
   private flashUniswapV3: IFlashUniswapV3;
@@ -28,16 +27,29 @@ export class Strategy extends BaseStrategy {
     collateral: string,
     underlyingAmount: BigNumber,
     _underlying: string,
-  ): Promise<void> {
-    const tx = await this.flashUniswapV3.flashLiquidate({
+  ): Promise<ContractReceipt> {
+    // TODO: profitibility calculation for liquidation
+    // TODO: pop the collateral from persistence list after liquidation
+    const flashLiquidateArgs: {
+      borrower: string;
+      bond: string;
+      collateral: string;
+      poolFee: BigNumberish;
+      turnout: BigNumberish;
+      underlyingAmount: BigNumberish;
+    } = {
       borrower: account,
       bond: bond,
       collateral: collateral,
       poolFee: 500,
       turnout: MinInt256,
       underlyingAmount: underlyingAmount,
-    });
+    };
+    // TODO: profitibility calculation (including gas)
+    const gasLimit = await this.flashUniswapV3.estimateGas.flashLiquidate(flashLiquidateArgs);
+    const gasPrice = await this.flashUniswapV3.provider.getGasPrice();
+    const tx = await this.flashUniswapV3.flashLiquidate(flashLiquidateArgs, { gasLimit, gasPrice });
     const receipt = await tx.wait(1);
-    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+    return receipt;
   }
 }

@@ -1,15 +1,25 @@
 import { UNISWAP_V2_INIT_CODE_HASH } from "../../constants";
-import { Logger, addressesAreEqual, getUniswapV2PairInfo } from "../../helpers";
+import { addressesAreEqual, getUniswapV2PairInfo } from "../../helpers";
 import { StrategyArgs } from "../../types";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
 import { IUniswapV2Pair__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v2/IUniswapV2Pair__factory";
-import { BigNumber, BigNumberish, Contract, utils } from "ethers";
+import { BigNumber, BigNumberish, Contract, ContractReceipt, utils } from "ethers";
 
 export class Strategy extends BaseStrategy {
+  private contractAddresses: {
+    factory: string;
+    flashSwap: string;
+  };
+
   constructor(args: StrategyArgs) {
     super({ ...args, strategyName: "uniswap-v2" });
+
+    if (!this.networkConfig.contracts.strategies["uniswap-v2"]) {
+      throw new Error("Uniswap V2 strategy is not supported on " + this.provider.network.name);
+    }
+    this.contractAddresses = this.networkConfig.contracts.strategies["uniswap-v2"];
   }
 
   protected async liquidate(
@@ -18,12 +28,9 @@ export class Strategy extends BaseStrategy {
     collateral: string,
     underlyingAmount: BigNumber,
     underlying: string,
-  ): Promise<void> {
-    if (!this.networkConfig.contracts.strategies["uniswap-v2"]) {
-      throw new Error("Uniswap V2 strategy is not supported on " + this.provider.network.name);
-    }
+  ): Promise<ContractReceipt> {
     const { pair, token0, token1 } = getUniswapV2PairInfo({
-      factoryAddress: this.networkConfig.contracts.strategies["uniswap-v2"].factory,
+      factoryAddress: this.contractAddresses.factory,
       initCodeHash: UNISWAP_V2_INIT_CODE_HASH,
       tokenA: collateral,
       tokenB: underlying,
@@ -34,7 +41,7 @@ export class Strategy extends BaseStrategy {
     const swapArgs: [BigNumberish, BigNumberish, string, string] = [
       addressesAreEqual(token0, underlying) ? underlyingAmount : 0,
       addressesAreEqual(token1, underlying) ? underlyingAmount : 0,
-      this.networkConfig.contracts.strategies["uniswap-v2"].flashSwap,
+      this.contractAddresses.flashSwap,
       utils.defaultAbiCoder.encode(
         ["tuple(address borrower, address bond, address collateral, int256 turnout)"],
         [
@@ -49,9 +56,9 @@ export class Strategy extends BaseStrategy {
     ];
     // TODO: profitibility calculation (including gas)
     const gasLimit = await contract.estimateGas.swap(...swapArgs);
-    const gasPrice = await this.provider.getGasPrice();
+    const gasPrice = await contract.provider.getGasPrice();
     const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
     const receipt = await tx.wait(1);
-    Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
+    return receipt;
   }
 }

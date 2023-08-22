@@ -1,11 +1,11 @@
-import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, UNISWAP_V2, VAULTS } from "../constants";
+import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "../constants";
 import { Logger, batchQueryFilter, initCache } from "../helpers";
 import { StrategyArgs, Cache, Htokens, NetworkConfig, Vault, Vaults, StrategyName } from "../types";
 import { IBalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/IBalanceSheetV2";
 import { IHToken } from "@hifi/protocol/dist/types/contracts/core/h-token/IHToken";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
 import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/core/h-token/HToken__factory";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, ContractReceipt } from "ethers";
 
 export abstract class BaseStrategy {
   protected cache: Cache;
@@ -81,7 +81,7 @@ export abstract class BaseStrategy {
     _collateral: string,
     _underlyingAmount: BigNumber,
     _underlying: string,
-  ): Promise<void>;
+  ): Promise<ContractReceipt>;
 
   private async liquidateAllMature(_latestBlock: number): Promise<void> {
     const vaults = this.vaults();
@@ -107,7 +107,9 @@ export abstract class BaseStrategy {
                 const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
                 const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
                 if (repayAmount.gt(0)) {
-                  await this.liquidate(account, htoken, collateral, underlyingAmount, underlying);
+                  Logger.notice("Attempting to liquidate mature vault %s...", account);
+                  const receipt = await this.liquidate(account, htoken, collateral, underlyingAmount, underlying);
+                  Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
                 }
               }
             }
@@ -139,7 +141,9 @@ export abstract class BaseStrategy {
               const repayAmount = hypotheticalRepayAmount.gt(debtAmount) ? debtAmount : hypotheticalRepayAmount;
               const underlyingAmount = repayAmount.div(underlyingPrecisionScalar).add(DUST_EPSILON);
               if (repayAmount.gt(0)) {
-                await this.liquidate(account, bond, collateral, underlyingAmount, underlying);
+                Logger.notice("Attempting to liquidate underwater vault %s...", account);
+                const receipt = await this.liquidate(account, bond, collateral, underlyingAmount, underlying);
+                Logger.notice("Submitted liquidation at hash: %s", receipt.transactionHash);
               }
             } else {
               break liquidateAccount;
