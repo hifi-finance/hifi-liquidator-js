@@ -1,8 +1,8 @@
-import { getFlashbotsURL, isTrueString } from "./helpers";
 import * as networkConfig from "./network-config.json";
 import { Strategy as UniswapV2Strategy } from "./strategies/uniswap-v2";
 import { Strategy as UniswapV3Strategy } from "./strategies/uniswap-v3";
 import { NetworkName, StrategyName } from "./types";
+import { getFlashbotsURL, isTrueString } from "./utils";
 import { Wallet, providers, utils } from "ethers";
 
 require("dotenv").config();

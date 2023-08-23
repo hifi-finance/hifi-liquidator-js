@@ -49,7 +49,7 @@ export class Strategy extends BaseStrategy {
     const gasLimit = await this.flashUniswapV3.estimateGas.flashLiquidate(flashLiquidateArgs);
     const gasPrice = await this.flashUniswapV3.provider.getGasPrice();
     const tx = await this.flashUniswapV3.flashLiquidate(flashLiquidateArgs, { gasLimit, gasPrice });
-    const receipt = await tx.wait(1);
+    const receipt = await this.provider.waitForTransaction(tx.hash, 1, 600_000);
     return receipt;
   }
 }

@@ -1,6 +1,6 @@
 import { DUST_EPSILON, HTOKENS, LAST_SYNCED_BLOCK, VAULTS } from "../constants";
-import { Logger, batchQueryFilter, initCache } from "../helpers";
 import { StrategyArgs, Cache, Htokens, NetworkConfig, Vault, Vaults, StrategyName } from "../types";
+import { Logger, batchQueryFilter, initCache } from "../utils";
 import { IBalanceSheetV2 } from "@hifi/protocol/dist/types/contracts/core/balance-sheet/IBalanceSheetV2";
 import { IHToken } from "@hifi/protocol/dist/types/contracts/core/h-token/IHToken";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";

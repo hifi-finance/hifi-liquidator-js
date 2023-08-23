@@ -1,6 +1,6 @@
 import { UNISWAP_V2_INIT_CODE_HASH } from "../../constants";
-import { addressesAreEqual, getUniswapV2PairInfo } from "../../helpers";
 import { StrategyArgs } from "../../types";
+import { addressesAreEqual, getUniswapV2PairInfo } from "../../utils";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IUniswapV2Pair } from "@hifi/flash-swap/dist/types/contracts/uniswap-v2/IUniswapV2Pair";
@@ -58,7 +58,7 @@ export class Strategy extends BaseStrategy {
     const gasLimit = await contract.estimateGas.swap(...swapArgs);
     const gasPrice = await contract.provider.getGasPrice();
     const tx = await contract.swap(...swapArgs, { gasLimit, gasPrice });
-    const receipt = await tx.wait(1);
+    const receipt = await this.provider.waitForTransaction(tx.hash, 1, 600_000);
     return receipt;
   }
 }
