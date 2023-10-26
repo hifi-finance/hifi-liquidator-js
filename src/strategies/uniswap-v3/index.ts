@@ -1,4 +1,5 @@
 import { StrategyArgs } from "../../types";
+import { getOptimalUniswapV3Fee } from "../../utils";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
@@ -26,7 +27,7 @@ export class Strategy extends BaseStrategy {
     bond: string,
     collateral: string,
     underlyingAmount: BigNumber,
-    _underlying: string,
+    underlying: string,
   ): Promise<ContractReceipt> {
     // TODO: profitibility calculation for liquidation
     // TODO: pop the collateral from persistence list after liquidation
@@ -41,7 +42,7 @@ export class Strategy extends BaseStrategy {
       borrower: account,
       bond: bond,
       collateral: collateral,
-      poolFee: 500,
+      poolFee: await getOptimalUniswapV3Fee({ collateral, underlying, underlyingAmount, provider: this.provider }),
       turnout: MinInt256,
       underlyingAmount: underlyingAmount,
     };

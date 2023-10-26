@@ -1,5 +1,8 @@
-import { NetworkName } from "./types";
-import { Contract, Event, EventFilter, utils } from "ethers";
+import { UNISWAP_V3_FEE_TIERS, UNISWAP_V3_QUOTER } from "./constants";
+import { NetworkName, Provider } from "./types";
+import { MaxUint256 } from "@ethersproject/constants";
+import IQuoterV2 from "@uniswap/v3-periphery/artifacts/contracts/interfaces/IQuoterV2.sol/IQuoterV2.json";
+import { BigNumber, BigNumberish, Contract, Event, EventFilter, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
 import * as fs from "fs";
 import StormDB from "stormdb";
@@ -36,6 +39,39 @@ export function getFlashbotsURL(chainName: NetworkName) {
     default:
       return "https://rpc.flashbots.net";
   }
+}
+
+export async function getOptimalUniswapV3Fee({
+  collateral,
+  underlying,
+  underlyingAmount,
+  provider,
+}: {
+  collateral: string;
+  underlying: string;
+  underlyingAmount: BigNumberish;
+  provider: Provider;
+}) {
+  const contract = new Contract(UNISWAP_V3_QUOTER, IQuoterV2.abi, provider);
+  const { fee } = (
+    await Promise.all(
+      UNISWAP_V3_FEE_TIERS.map(async fee => {
+        try {
+          const { amountIn }: { amountIn: BigNumber } = await contract.callStatic.quoteExactOutputSingle({
+            tokenIn: collateral,
+            tokenOut: underlying,
+            amount: underlyingAmount,
+            fee: fee,
+            sqrtPriceLimitX96: 0,
+          });
+          return { fee, amountIn };
+        } catch {
+          return { fee, amountIn: MaxUint256 };
+        }
+      }),
+    )
+  ).reduce((prev, current) => (current.amountIn.lt(prev.amountIn) ? current : prev));
+  return fee;
 }
 
 export function getUniswapV2PairInfo({
