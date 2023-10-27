@@ -76,9 +76,9 @@ The service is ran in production on via a Kubernetes cluster. Upgrades can be ma
 2. Rebuild the Docker image and push the new version to Docker Hub:
 
 ```bash
-$ docker build ./ -t hififinance/hifi-liquidator-js
-$ docker tag hififinance/hifi-liquidator-js:latest hififinance/hifi-liquidator-js:<NEW_VERSION>
-$ docker push hififinance/hifi-liquidator-js:<NEW_VERSION>
+$ docker build ./ -t us-west3-docker.pkg.dev/liquidation-bots/hifi/hifi-liquidator-js
+$ docker tag us-west3-docker.pkg.dev/liquidation-bots/hifi/hifi-liquidator-js:latest us-west3-docker.pkg.dev/liquidation-bots/hifi/hifi-liquidator-js:<NEW_VERSION>
+$ docker push us-west3-docker.pkg.dev/liquidation-bots/hifi/hifi-liquidator-js:<NEW_VERSION>
 ```
 
 3. Update the version of the Docker image in deployment.yaml to `NEW_VERSION`.
