@@ -1,7 +1,7 @@
 {
   "name": "@hifi/liquidator-js",
   "description": "Utility for automatically liquidating underwater accounts in Hifi",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": {
     "name": "Hifi",
     "email": "contact@hifi.finance",
