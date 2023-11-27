@@ -35,6 +35,10 @@ export class Strategy extends BaseStrategy {
       tokenA: collateral,
       tokenB: underlying,
     });
+    if ((await this.provider.getCode(pair)).slice(2).length === 0) {
+      throw new Error("Pair does not exist");
+    }
+
     const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;
     // TODO: profitibility calculation for liquidation
     // TODO: pop the collateral from persistence list after liquidation
