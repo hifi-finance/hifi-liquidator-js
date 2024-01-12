@@ -1143,7 +1143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/providers@npm:5.7.2":
+"@ethersproject/providers@npm:5.7.2, @ethersproject/providers@npm:^5.7.2":
   version: 5.7.2
   resolution: "@ethersproject/providers@npm:5.7.2"
   dependencies:
@@ -1586,29 +1586,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hifi/flash-swap@npm:^1.12.0":
-  version: 1.12.0
-  resolution: "@hifi/flash-swap@npm:1.12.0"
+"@hifi/flash-swap@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "@hifi/flash-swap@npm:1.13.0"
   dependencies:
-    "@ethersproject/abi": ^5.6.0
-    "@ethersproject/bytes": ^5.6.1
-    "@ethersproject/providers": ^5.6.2
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/bytes": ^5.7.0
+    "@ethersproject/providers": ^5.7.2
     "@hifi/protocol": 1.11.0
     "@openzeppelin/contracts-upgradeable": 4.5.2
     "@prb/contracts": 3.8.1
-    "@uniswap/sdk-core": ^3.1.2
+    "@uniswap/sdk-core": ^3.2.3
     "@uniswap/v2-core": 1.0.1
     "@uniswap/v3-core": 1.0.1
     "@uniswap/v3-periphery": 1.0.1
-    "@uniswap/v3-sdk": ^3.9.0
-    ethers: ^5.6.2
+    "@uniswap/v3-sdk": ^3.10.0
+    ethers: ^5.7.2
   peerDependencies:
     "@hifi/protocol": 1.10.0
     "@prb/contracts": 3.8.0
     "@uniswap/v2-core": 1.0.1
     "@uniswap/v3-core": 1.0.1
     ethers: ^5.6.2
-  checksum: d09963fb22bc110a798b626c4949cd8e8673ec97ff8a80f28891bf0169fceaf8e7e5ef971d982001b0ae122f6f1ffc9da7ca4011467f78b20a28b280356369d6
+  checksum: 6e10a3b966912c2358e19d3a21f625adaab419dd5379b8c5ef52ac0511ed647a9c411f9731c204ce0ccbf0a0d5c25b0c5114b725ad696de6eee24b7c720f28eb
   languageName: node
   linkType: hard
 
@@ -1618,7 +1618,7 @@ __metadata:
   dependencies:
     "@commitlint/cli": ^18.2.0
     "@commitlint/config-conventional": ^18.1.0
-    "@hifi/flash-swap": ^1.12.0
+    "@hifi/flash-swap": ^1.13.0
     "@hifi/protocol": ^1.11.0
     "@trivago/prettier-plugin-sort-imports": ^4.2.1
     "@types/node": ^20.9.0
@@ -2107,9 +2107,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@uniswap/sdk-core@npm:^3.0.1, @uniswap/sdk-core@npm:^3.1.2":
-  version: 3.2.2
-  resolution: "@uniswap/sdk-core@npm:3.2.2"
+"@uniswap/sdk-core@npm:^3.2.3":
+  version: 3.2.3
+  resolution: "@uniswap/sdk-core@npm:3.2.3"
   dependencies:
     "@ethersproject/address": ^5.0.2
     big.js: ^5.2.2
@@ -2117,7 +2117,21 @@ __metadata:
     jsbi: ^3.1.4
     tiny-invariant: ^1.1.0
     toformat: ^2.0.0
-  checksum: 6a2b85ef429b2f19324764944f7de309e74509bcc7c4f869e4fb39b836e75d3efda6c842a35511e9e4747dddaf24c4675f2bf980668110e742c76bafab29e8b4
+  checksum: a19367c7e1d7b391b1664f59b808836cbaed9a12880bdf6b9a31e6c3b63f2edce2966bdda65144a3003e4c3cd96085b86129c174971330a9766194c404263346
+  languageName: node
+  linkType: hard
+
+"@uniswap/sdk-core@npm:^4":
+  version: 4.0.10
+  resolution: "@uniswap/sdk-core@npm:4.0.10"
+  dependencies:
+    "@ethersproject/address": ^5.0.2
+    big.js: ^5.2.2
+    decimal.js-light: ^2.5.0
+    jsbi: ^3.1.4
+    tiny-invariant: ^1.1.0
+    toformat: ^2.0.0
+  checksum: 85c1ca851c94a6acdb822eb6bfda50e55701a1fb72b7928e6f7b0a6d6ced42cb987f392d3a4d4cc3453421fe52b850e5aaa896a42075d50786f28648399b977f
   languageName: node
   linkType: hard
 
@@ -2209,19 +2223,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@uniswap/v3-sdk@npm:^3.9.0":
-  version: 3.9.0
-  resolution: "@uniswap/v3-sdk@npm:3.9.0"
+"@uniswap/v3-sdk@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "@uniswap/v3-sdk@npm:3.10.0"
   dependencies:
     "@ethersproject/abi": ^5.0.12
     "@ethersproject/solidity": ^5.0.9
-    "@uniswap/sdk-core": ^3.0.1
+    "@uniswap/sdk-core": ^4
     "@uniswap/swap-router-contracts": ^1.2.1
     "@uniswap/v3-periphery": ^1.1.1
     "@uniswap/v3-staker": 1.0.0
     tiny-invariant: ^1.1.0
     tiny-warning: ^1.0.3
-  checksum: 7b05a47431c0c9f575b38678a000c7b2712b0d44601a8aecc61009030bbd62f79070fed8b9eb307366d2c73b7459dbf8337daaf272e290ea6e56acd23c8d39ef
+  checksum: 664d40550aa5c88b21bce3dc209746bc61490e4afaa5686d12d6a5839e26211ae5093d82eeff3e3ec80df5df3eb1d40f9a7510b61a389e2779a9b1e5eca9ed25
   languageName: node
   linkType: hard
 

@@ -45,7 +45,7 @@
     "start": "ts-node src"
   },
   "dependencies": {
-    "@hifi/flash-swap": "^1.12.0",
+    "@hifi/flash-swap": "^1.13.0",
     "@hifi/protocol": "^1.11.0",
     "@uniswap/v3-periphery": "^1.4.4",
     "dotenv": "^16.3.1",
