@@ -1619,7 +1619,7 @@ __metadata:
     "@commitlint/cli": ^18.2.0
     "@commitlint/config-conventional": ^18.1.0
     "@hifi/flash-swap": ^1.13.0
-    "@hifi/protocol": ^1.11.0
+    "@hifi/protocol": ^1.12.0
     "@trivago/prettier-plugin-sort-imports": ^4.2.1
     "@types/node": ^20.9.0
     "@typescript-eslint/eslint-plugin": ^6.10.0
@@ -1644,7 +1644,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hifi/protocol@npm:1.11.0, @hifi/protocol@npm:^1.11.0":
+"@hifi/protocol@npm:1.11.0":
   version: 1.11.0
   resolution: "@hifi/protocol@npm:1.11.0"
   dependencies:
@@ -1661,6 +1661,26 @@ __metadata:
     "@prb/math": 2.5.0
     ethers: ^5.6.2
   checksum: 113e505790f0f27e15b266bae45257819b55fe6bcdc7430f70a70b1b58450fd8cfe998320c93555fdc91bf4a37c1dd71ec725fd527857804434936e3a118a83c
+  languageName: node
+  linkType: hard
+
+"@hifi/protocol@npm:^1.12.0":
+  version: 1.12.0
+  resolution: "@hifi/protocol@npm:1.12.0"
+  dependencies:
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/bytes": ^5.7.0
+    "@ethersproject/providers": ^5.7.2
+    "@openzeppelin/contracts-upgradeable": 4.5.2
+    "@prb/contracts": 3.8.1
+    "@prb/math": 2.5.0
+    ethers: ^5.7.2
+  peerDependencies:
+    "@openzeppelin/contracts-upgradeable": 4.5.2
+    "@prb/contracts": 3.8.0
+    "@prb/math": 2.5.0
+    ethers: ^5.6.2
+  checksum: e4155574547cd833285776ea6fdb7a04f4721bde2299d8384629f7c43c9554a73684f316e121c0f14e37b7915e681de688fd247acd09211d6408b0b0ce9f3a9a
   languageName: node
   linkType: hard
 
