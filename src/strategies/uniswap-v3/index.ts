@@ -1,10 +1,11 @@
 import { StrategyArgs } from "../../types";
-import { getOptimalUniswapV3Fee } from "../../utils";
+import { getOptimalUniswapV3Path } from "../../utils";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
 import { FlashUniswapV3__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v3/FlashUniswapV3__factory";
-import { BigNumber, BigNumberish, Contract, ContractReceipt, utils } from "ethers";
+
+import { BigNumber, BigNumberish, Contract, ContractReceipt } from "ethers";
 
 export class Strategy extends BaseStrategy {
   private flashUniswapV3: IFlashUniswapV3;
@@ -40,18 +41,16 @@ export class Strategy extends BaseStrategy {
       underlyingAmount: BigNumberish;
     } = {
       borrower: account,
-      bond: bond,
-      collateral: collateral,
-      path: utils.solidityPack(
-        ["address", "uint24", "address"],
-        [
-          underlying,
-          await getOptimalUniswapV3Fee({ collateral, underlying, underlyingAmount, provider: this.provider }),
-          collateral,
-        ],
-      ),
+      bond,
+      collateral,
+      path: await getOptimalUniswapV3Path({
+        collateral,
+        underlying,
+        underlyingAmount,
+        signer: this.signer,
+      }),
       turnout: MinInt256,
-      underlyingAmount: underlyingAmount,
+      underlyingAmount,
     };
     // TODO: profitibility calculation (including gas)
     const gasLimit = await this.flashUniswapV3.estimateGas.flashLiquidate(flashLiquidateArgs);
