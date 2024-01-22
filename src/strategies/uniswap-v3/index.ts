@@ -14,7 +14,7 @@ export class Strategy extends BaseStrategy {
     super({ ...args, strategyName: "uniswap-v3" });
 
     if (!this.networkConfig.contracts.strategies["uniswap-v3"]) {
-      throw new Error("Uniswap V3 strategy is not supported on " + this.provider.network.name);
+      throw new Error("Uniswap V3 Strategy: Not supported on " + this.provider.network.name);
     }
     this.flashUniswapV3 = new Contract(
       this.networkConfig.contracts.strategies["uniswap-v3"].flashSwap,

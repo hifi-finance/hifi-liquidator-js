@@ -6,7 +6,9 @@ import StormDB from "stormdb";
 import { format } from "util";
 import * as winston from "winston";
 import { AlphaRouter, CurrencyAmount } from "@uniswap/smart-order-router";
+import { IERC20Metadata__factory } from "@uniswap/smart-order-router/build/main/types/v3/factories/IERC20Metadata__factory";
 import { Token, TradeType } from "@uniswap/sdk-core";
+import { Protocol } from "@uniswap/router-sdk";
 import { Pool } from "@uniswap/v3-sdk";
 
 export function addressesAreEqual(address0: string, address1: string) {
@@ -52,18 +54,12 @@ export async function getOptimalUniswapV3Path({
   underlyingAmount: BigNumberish;
   signer: Signer;
 }) {
-  const ERC20Abi = [
-    "function decimals() view returns (uint8)",
-    "function symbol() view returns (string)",
-    "function name() view returns (string)",
-  ];
-
   const provider = signer.provider! as Provider;
   const chainId = provider.network.chainId;
   const router = new AlphaRouter({ chainId, provider });
 
-  const collateralContract = new Contract(collateral, ERC20Abi, provider);
-  const underlyingContract = new Contract(underlying, ERC20Abi, provider);
+  const collateralContract = new Contract(collateral, IERC20Metadata__factory.abi, provider);
+  const underlyingContract = new Contract(underlying, IERC20Metadata__factory.abi, provider);
 
   const tokenIn = new Token(
     chainId,
@@ -80,19 +76,27 @@ export async function getOptimalUniswapV3Path({
     await underlyingContract.name(),
   );
 
-  const { trade: swap } = (await router.route(
+  const route = (await router.route(
     CurrencyAmount.fromRawAmount(tokenOut, underlyingAmount.toString()),
     tokenIn,
     TradeType.EXACT_OUTPUT,
+    undefined,
+    {
+      protocols: [Protocol.V3],
+    },
   ))!;
 
-  const { pools, path: tokens } = swap.routes[0] as { pools: Pool[]; path: Token[] };
+  if (!route) {
+    throw new Error("Uniswap V3 Strategy: No swap path found");
+  }
 
-  const routePoolFees = pools.map(p => p.fee.toString()).reverse();
-  const routeTokens = tokens.map(t => t.address).reverse();
+  const { pools, path: tokens } = route.trade.routes[0] as { pools: Pool[]; path: Token[] };
+
+  const routePoolFees = pools.map(({ fee }) => fee.toString()).reverse();
+  const routeTokens = tokens.map(({ address }) => address).reverse();
 
   if (routePoolFees.length !== routeTokens.length - 1) {
-    throw new Error("Route pool fees and tokens length mismatch");
+    throw new Error("Uniswap V3 Strategy: Route pool fees and token length mismatch");
   }
 
   // Compute the route values.
@@ -103,7 +107,7 @@ export async function getOptimalUniswapV3Path({
   }
 
   // Compute the route types.
-  const types = values.map(value => (utils.isAddress(value) ? "address" : "uint24"));
+  const types: ("address" | "uint24")[] = values.map(value => (utils.isAddress(value) ? "address" : "uint24"));
 
   return utils.solidityPack(types, values);
 }
