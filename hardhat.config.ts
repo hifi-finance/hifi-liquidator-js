@@ -1,8 +1,9 @@
 import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
 import type { HardhatUserConfig } from "hardhat/config";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
-import networkConfig from "./src/network-config.json";
+import { FORK_BLOCK } from "./test/shared/constants";
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
@@ -22,7 +23,7 @@ const config: HardhatUserConfig = {
       chainId: 31337,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
-        blockNumber: networkConfig.homestead.startBlock,
+        blockNumber: FORK_BLOCK,
       },
     },
   },

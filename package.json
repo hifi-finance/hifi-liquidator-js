@@ -11,6 +11,7 @@
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
     "@trivago/prettier-plugin-sort-imports": "^4.2.1",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
@@ -22,6 +23,7 @@
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
+    "ethereum-waffle": "^4.0.10",
     "hardhat": "^2.19.4",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.2",
@@ -49,7 +51,7 @@
     "prettier": "prettier --config ./.prettierrc --write \"**/*.{js,json,md,ts}\"",
     "prettier:check": "prettier --check --config ./.prettierrc \"**/*.{js,json,md,ts}\"",
     "start": "ts-node src",
-    "test": "hardhat test test/index.ts --network hardhat"
+    "test": "hardhat test test/unit --network hardhat"
   },
   "dependencies": {
     "@hifi/flash-swap": "^1.13.0",
