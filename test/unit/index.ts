@@ -1,15 +1,10 @@
 import { baseContext } from "../shared/contexts";
-import { unitFixture } from "../shared/fixtures";
-import { behavior } from "./behavior";
+import { unitTestBase } from "./base/base";
+import { unitTestUniswapV2 } from "./strategies/uniswap-v2/uniswap-v2";
+import { unitTestUniswapV3 } from "./strategies/uniswap-v3/uniswap-v3";
 
 baseContext("Unit Tests", function () {
-  beforeEach(async function () {
-    const { balanceSheet, oracle, usdc, weth } = await this.loadFixture(unitFixture);
-    this.contracts.balanceSheet = balanceSheet;
-    this.contracts.oracle = oracle;
-    this.contracts.usdc = usdc;
-    this.contracts.weth = weth;
-  });
-
-  behavior();
+  unitTestBase();
+  unitTestUniswapV2();
+  unitTestUniswapV3();
 });

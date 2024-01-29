@@ -34,7 +34,7 @@ export abstract class BaseStrategy {
     ) as IBalanceSheetV2;
   }
 
-  // getter methods
+  // Read Methods
   private async isUnderwater(account: string): Promise<boolean> {
     const { shortfallLiquidity } = await this.balanceSheet.getCurrentAccountLiquidity(account);
     return shortfallLiquidity.gt(0);
@@ -48,7 +48,7 @@ export abstract class BaseStrategy {
     return this.cache.get(VAULTS).value();
   }
 
-  // effects
+  // Write Methods
   private async cacheHtoken(htoken: string): Promise<void> {
     const htokens = this.htokens();
     if (htokens[htoken] === undefined) {
