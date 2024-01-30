@@ -9,12 +9,24 @@ import {
 } from "./typechain";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
 import { BALANCESHEET_ADDRESS } from "./constants";
+import { BaseStrategy } from "../../src/strategies/base";
+import { MockStrategy } from "./mocks";
+import { Provider } from "../../src/types";
+import { Signer } from "ethers";
 
 type UnitFixtureReturnType = {
   balanceSheet: BalanceSheet;
   oracle: ChainlinkOperator;
   usdc: Erc20;
   weth: Erc20;
+};
+
+type UnitFixtureBaseReturnType = {
+  balanceSheet: BalanceSheet;
+  oracle: ChainlinkOperator;
+  usdc: Erc20;
+  weth: Erc20;
+  liquidator: BaseStrategy;
 };
 
 export async function unitFixture(): Promise<UnitFixtureReturnType> {
@@ -28,4 +40,34 @@ export async function unitFixture(): Promise<UnitFixtureReturnType> {
   const weth = <Erc20>await ethers.getContractAt(Erc20__factory.abi, wethAddress);
 
   return { balanceSheet, oracle, usdc, weth };
+}
+
+export async function unitFixtureBase(signers: Signer[]): Promise<UnitFixtureBaseReturnType> {
+  const balanceSheet = <BalanceSheet>await ethers.getContractAt(BalanceSheetV2__factory.abi, BALANCESHEET_ADDRESS);
+  const oracle = <ChainlinkOperator>(
+    await ethers.getContractAt(ChainlinkOperator__factory.abi, await balanceSheet.oracle())
+  );
+  const usdcAddress = (await oracle.getFeed("USDC"))[0];
+  const usdc = <Erc20>await ethers.getContractAt(Erc20__factory.abi, usdcAddress);
+  const wethAddress = (await oracle.getFeed("WETH"))[0];
+  const weth = <Erc20>await ethers.getContractAt(Erc20__factory.abi, wethAddress);
+  const liquidator = new MockStrategy({
+    networkConfig: {
+      contracts: {
+        balanceSheet: BALANCESHEET_ADDRESS,
+        strategies: {
+          "uniswap-v3": {
+            flashSwap: "",
+          },
+        },
+      },
+      flashbotsEnabled: false,
+      startBlock: 0,
+    },
+    persistenceEnabled: false,
+    provider: signers[0].provider as Provider,
+    signer: signers[0] as any,
+  });
+
+  return { balanceSheet, oracle, liquidator, usdc, weth };
 }
