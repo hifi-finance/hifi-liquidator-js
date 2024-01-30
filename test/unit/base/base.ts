@@ -4,12 +4,12 @@ import { shouldBehaveLikeBase } from "./base.behavior";
 export function unitTestBase(): void {
   describe("Base", function () {
     beforeEach(async function () {
-      const { balanceSheet, liquidator, oracle, usdc, weth } = await this.loadFixture(unitFixtureBase);
-      this.contracts.balanceSheet = balanceSheet;
+      const { balanceSheet, bond, liquidator, usdc, weth } = await this.loadFixture(unitFixtureBase);
+      this.mocks.balanceSheet = balanceSheet;
+      this.mocks.bond = bond;
+      this.mocks.usdc = usdc;
+      this.mocks.weth = weth;
       this.liquidator = liquidator;
-      this.contracts.oracle = oracle;
-      this.contracts.usdc = usdc;
-      this.contracts.weth = weth;
     });
 
     shouldBehaveLikeBase();

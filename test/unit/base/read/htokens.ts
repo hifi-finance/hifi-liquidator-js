@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { HTOKENS } from "../../../shared/constants";
 import { Contract } from "ethers";
 import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/core/h-token/HToken__factory";
 
@@ -14,19 +13,18 @@ export function shouldBehaveLikeHTokens(): void {
 
   context("when hTokens are cached", function () {
     beforeEach(async function () {
-      await (this.liquidator as any).cacheHtoken(HTOKENS[0]);
+      await (this.liquidator as any).cacheHtoken(this.mocks.bond.address);
     });
 
     it("returns the cached hTokens", async function () {
       const hTokens = (this.liquidator as any).htokens();
       expect(hTokens).to.not.be.empty;
-      expect(hTokens).to.have.keys(HTOKENS[0]);
-      const actualHtoken = hTokens[HTOKENS[0]];
-      const expectedHtokenContract = new Contract(HTOKENS[0], HToken__factory.abi, this.signers.admin.provider);
-      expect(actualHtoken).to.have.keys("maturity", "underlying", "underlyingPrecisionScalar");
-      expect(actualHtoken.maturity).to.be.eq(await expectedHtokenContract.maturity());
-      expect(actualHtoken.underlying).to.be.eq(await expectedHtokenContract.underlying());
-      expect(actualHtoken.underlyingPrecisionScalar).to.be.eq(await expectedHtokenContract.underlyingPrecisionScalar());
+      expect(hTokens).to.have.keys(this.mocks.bond.address);
+      const hToken = hTokens[this.mocks.bond.address];
+      expect(hToken).to.have.keys("maturity", "underlying", "underlyingPrecisionScalar");
+      expect(hToken.maturity).to.be.eq(await this.mocks.bond.maturity());
+      expect(hToken.underlying).to.be.eq(await this.mocks.bond.underlying());
+      expect(hToken.underlyingPrecisionScalar).to.be.eq(await this.mocks.bond.underlyingPrecisionScalar());
     });
   });
 }
