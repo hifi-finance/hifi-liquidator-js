@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
       },
-      chainId: 31337,
+      chainId: 1,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
         blockNumber: FORK_BLOCK,

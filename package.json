@@ -51,7 +51,7 @@
     "prettier": "prettier --config ./.prettierrc --write \"**/*.{js,json,md,ts}\"",
     "prettier:check": "prettier --check --config ./.prettierrc \"**/*.{js,json,md,ts}\"",
     "start": "ts-node src",
-    "test": "hardhat test test/unit --network hardhat"
+    "test": "hardhat test --network hardhat"
   },
   "dependencies": {
     "@hifi/flash-swap": "^1.13.0",

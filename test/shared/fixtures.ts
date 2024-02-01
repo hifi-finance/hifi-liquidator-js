@@ -2,6 +2,10 @@ import { deployMockBalanceSheetContract, deployMockHTokenContract, deployMockErc
 import { Signer } from "ethers";
 import { MockContract } from "ethereum-waffle";
 
+export async function integrationFixtureUniswapV2(signers: Signer[]): Promise<void> {}
+
+export async function integrationFixtureUniswapV3(signers: Signer[]): Promise<void> {}
+
 type UnitFixtureBaseReturnType = {
   balanceSheet: MockContract;
   bond: MockContract;
