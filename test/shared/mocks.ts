@@ -5,7 +5,7 @@ import type { BigNumber, ContractReceipt, Signer } from "ethers";
 import { MockContract } from "ethereum-waffle";
 import hre from "hardhat";
 
-import { BalanceSheet__factory, Erc20__factory, HToken__factory } from "./typechain";
+import { BalanceSheet__factory, Erc20__factory, HToken__factory, IAggregatorV3__factory } from "./typechain";
 
 const { deployMockContract } = hre.waffle;
 
@@ -52,4 +52,9 @@ export async function deployMockHTokenContract(deployer: Signer, underlying: str
   await hToken.mock.decimals.returns(18);
   await hToken.mock.totalSupply.returns(0);
   return hToken;
+}
+
+export async function deployMockOracleContract(deployer: Signer): Promise<MockContract> {
+  const oracle: MockContract = await deployMockContract(deployer, IAggregatorV3__factory.abi);
+  return oracle;
 }

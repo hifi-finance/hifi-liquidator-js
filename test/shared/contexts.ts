@@ -3,10 +3,12 @@ import type { Signer } from "@ethersproject/abstract-signer";
 import { Wallet } from "@ethersproject/wallet";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { ethers, waffle } from "hardhat";
-
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { Contracts, Mocks, Signers } from "./types";
 
 const { createFixtureLoader } = waffle;
+chai.use(chaiAsPromised);
 
 export function baseContext(description: string, hooks: () => void): void {
   describe(description, function () {

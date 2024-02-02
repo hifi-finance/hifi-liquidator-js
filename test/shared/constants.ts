@@ -1,1 +1,1 @@
-export const FORK_BLOCK: number = 18314915;
+export const FORK_BLOCK: number = 19143214;
