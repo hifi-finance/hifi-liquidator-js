@@ -1920,6 +1920,7 @@ __metadata:
     "@nomiclabs/hardhat-waffle": ^2.0.6
     "@trivago/prettier-plugin-sort-imports": ^4.2.1
     "@types/chai": ^4.3.11
+    "@types/chai-as-promised": ^7.1.8
     "@types/mocha": ^10.0.6
     "@types/node": ^20.9.0
     "@typescript-eslint/eslint-plugin": ^6.10.0
@@ -1927,6 +1928,7 @@ __metadata:
     "@uniswap/smart-order-router": ^3.20.2
     "@uniswap/v3-periphery": ^1.4.4
     chai: ^4.4.1
+    chai-as-promised: ^7.1.1
     commitizen: ^4.3.0
     cz-conventional-changelog: ^3.3.0
     dotenv: ^16.3.1
@@ -2792,7 +2794,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:^4.3.11":
+"@types/chai-as-promised@npm:^7.1.8":
+  version: 7.1.8
+  resolution: "@types/chai-as-promised@npm:7.1.8"
+  dependencies:
+    "@types/chai": "*"
+  checksum: f0e5eab451b91bc1e289ed89519faf6591932e8a28d2ec9bbe95826eb73d28fe43713633e0c18706f3baa560a7d97e7c7c20dc53ce639e5d75bac46b2a50bf21
+  languageName: node
+  linkType: hard
+
+"@types/chai@npm:*, @types/chai@npm:^4.3.11":
   version: 4.3.11
   resolution: "@types/chai@npm:4.3.11"
   checksum: d0c05fe5d02b2e6bbca2bd4866a2ab20a59cf729bc04af0060e7a3277eaf2fb65651b90d4c74b0ebf1d152b4b1d49fa8e44143acef276a2bbaa7785fbe5642d3
@@ -4395,6 +4406,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chai-as-promised@npm:^7.1.1":
+  version: 7.1.1
+  resolution: "chai-as-promised@npm:7.1.1"
+  dependencies:
+    check-error: ^1.0.2
+  peerDependencies:
+    chai: ">= 2.1.2 < 5"
+  checksum: 7262868a5b51a12af4e432838ddf97a893109266a505808e1868ba63a12de7ee1166e9d43b5c501a190c377c1b11ecb9ff8e093c89f097ad96c397e8ec0f8d6a
+  languageName: node
+  linkType: hard
+
 "chai@npm:^4.4.1":
   version: 4.4.1
   resolution: "chai@npm:4.4.1"
@@ -4455,7 +4477,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-error@npm:^1.0.3":
+"check-error@npm:^1.0.2, check-error@npm:^1.0.3":
   version: 1.0.3
   resolution: "check-error@npm:1.0.3"
   dependencies:
