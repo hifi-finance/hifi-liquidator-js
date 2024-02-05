@@ -18,7 +18,7 @@ import {
 import { ethers } from "hardhat";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
 
-type IntegrationFixtureUniswapV2ReturnType = {
+type IntegrationFixtureUniswapReturnType = {
   balanceSheet: BalanceSheet;
   bond: HToken;
   oracle: MockContract;
@@ -26,7 +26,7 @@ type IntegrationFixtureUniswapV2ReturnType = {
   weth: Erc20;
 };
 
-export async function integrationFixtureUniswapV2(signers: Signer[]): Promise<IntegrationFixtureUniswapV2ReturnType> {
+export async function integrationFixtureUniswap(signers: Signer[]): Promise<IntegrationFixtureUniswapReturnType> {
   const balanceSheet = <BalanceSheet>(
     await ethers.getContractAt(BalanceSheetV2__factory.abi, "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b")
   );
@@ -65,8 +65,6 @@ export async function integrationFixtureUniswapV2(signers: Signer[]): Promise<In
 
   return { balanceSheet, bond, oracle, usdc, weth };
 }
-
-export async function integrationFixtureUniswapV3(signers: Signer[]): Promise<void> {}
 
 type UnitFixtureBaseReturnType = {
   balanceSheet: MockContract;

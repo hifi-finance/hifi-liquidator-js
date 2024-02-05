@@ -1,17 +1,10 @@
 // import { unitFixture } from "../../../shared/fixtures";
 import { Strategy as UniswapV2Strategy } from "../../../../src/strategies/uniswap-v2";
-import { integrationFixtureUniswapV2 } from "../../../shared/fixtures";
 import { shouldBehaveLikeUniswapV2Strategy } from "./uniswap-v2.behavior";
 
 export function integrationTestUniswapV2(): void {
   describe("Uniswap V2 Strategy", function () {
     beforeEach(async function () {
-      const { balanceSheet, bond, oracle, usdc, weth } = await this.loadFixture(integrationFixtureUniswapV2);
-      this.contracts.balanceSheet = balanceSheet;
-      this.contracts.bond = bond;
-      this.mocks.oracle = oracle;
-      this.contracts.usdc = usdc;
-      this.contracts.weth = weth;
       this.liquidator = new UniswapV2Strategy({
         networkConfig: {
           contracts: {
