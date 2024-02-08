@@ -1,4 +1,4 @@
-import { Provider } from "../../../src/types";
+import { NetworkConfig, Provider } from "../../../src/types";
 import { unitFixtureBase } from "../../shared/fixtures";
 import { MockStrategy } from "../../shared/mocks";
 import { StrategyTester } from "../../shared/utils";
@@ -13,13 +13,10 @@ export function unitTestBase(): void {
       this.mocks.usdc = usdc;
       this.mocks.weth = weth;
       this.liquidator = new StrategyTester(MockStrategy, {
-        networkConfig: {
+        networkConfig: <NetworkConfig>{
           contracts: {
             balanceSheet: balanceSheet.address,
-            strategies: {},
           },
-          flashbotsEnabled: false,
-          startBlock: 0,
         },
         persistenceEnabled: false,
         provider: this.signers.runner.provider as Provider,

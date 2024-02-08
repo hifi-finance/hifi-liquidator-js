@@ -1,4 +1,4 @@
-import { StrategyArgs } from "../../src/types";
+import { StrategyArgs, StrategyName } from "../../src/types";
 import { BaseStrategy } from "../../src//strategies/base";
 
 import type { BigNumber, ContractReceipt, Signer } from "ethers";
@@ -11,7 +11,7 @@ const { deployMockContract } = hre.waffle;
 
 export class MockStrategy extends BaseStrategy {
   constructor(args: StrategyArgs) {
-    super({ ...args, strategyName: "uniswap-v3" });
+    super({ ...args, strategyName: null as unknown as StrategyName });
   }
   protected async liquidate(
     _account: string,

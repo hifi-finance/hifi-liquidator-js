@@ -15,12 +15,10 @@ export class StrategyTester<S extends BaseStrategy> {
     // @ts-ignore
     return this.strategy.isUnderwater(account);
   }
-
   public htokens(): Htokens {
     // @ts-ignore
     return this.strategy.htokens();
   }
-
   public vaults(): Vaults {
     // @ts-ignore
     return this.strategy.vaults();
@@ -31,12 +29,10 @@ export class StrategyTester<S extends BaseStrategy> {
     // @ts-ignore
     return this.strategy.cacheHtoken(htoken);
   }
-
   public async clearHtoken(htoken: string): Promise<void> {
     // @ts-ignore
     return this.strategy.clearHtoken(htoken);
   }
-
   public liquidate(
     _account: string,
     _bond: string,
@@ -47,22 +43,18 @@ export class StrategyTester<S extends BaseStrategy> {
     // @ts-ignore
     return this.strategy.liquidate(_account, _bond, _collateral, _underlyingAmount, _underlying);
   }
-
   public async liquidateAllMature(_latestBlock: number): Promise<void> {
     // @ts-ignore
     return this.strategy.liquidateAllMature(_latestBlock);
   }
-
   public async liquidateAllUnderwater(): Promise<void> {
     // @ts-ignore
     return this.strategy.liquidateAllUnderwater();
   }
-
   public async syncAll(_latestBlock?: number): Promise<void> {
     // @ts-ignore
     return this.strategy.syncAll(_latestBlock);
   }
-
   public async updateVaults(account: string, type: "pop" | "push", fragment: { [key: string]: string }): Promise<void> {
     // @ts-ignore
     return this.strategy.updateVaults(account, type, fragment);
