@@ -18,8 +18,8 @@ export function baseContext(description: string, hooks: () => void): void {
       this.signers = {} as Signers;
 
       const signers: SignerWithAddress[] = await ethers.getSigners();
-      this.signers.admin = signers[0];
-      this.signers.borrower = signers[1];
+      this.signers.borrower = signers[0];
+      this.signers.runner = signers[1];
 
       this.loadFixture = createFixtureLoader(signers as Signer[] as Wallet[]);
     });

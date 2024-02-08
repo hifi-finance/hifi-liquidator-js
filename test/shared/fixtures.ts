@@ -50,11 +50,13 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
     usdcAddress,
   );
 
+  const runnerAddress = await signers[0].getAddress();
+
   // impersonate a usdc whale
   const usdcWhale = "0x28C6c06298d514Db089934071355E5743bf21d60";
   await ethers.provider.send("hardhat_impersonateAccount", [usdcWhale]);
   const usdcWhaleSigner = await ethers.provider.getSigner(usdcWhale);
-  await usdc.connect(usdcWhaleSigner).transfer(await signers[0].getAddress(), ethers.utils.parseUnits("1000000", 6));
+  await usdc.connect(usdcWhaleSigner).transfer(runnerAddress, ethers.utils.parseUnits("1000000", 6));
 
   const wethAddress = (await chainlinkOracle.getFeed("WETH"))[0];
   const weth = <Erc20>await ethers.getContractAt(
@@ -66,12 +68,12 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
   const wethWhale = "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806";
   await ethers.provider.send("hardhat_impersonateAccount", [wethWhale]);
   const wethWhaleSigner = await ethers.provider.getSigner(wethWhale);
-  await weth.connect(wethWhaleSigner).transfer(await signers[0].getAddress(), ethers.utils.parseUnits("10000", 18));
+  await weth.connect(wethWhaleSigner).transfer(runnerAddress, ethers.utils.parseUnits("10000", 18));
 
   // mock chainlink oracle owner and set feed
   const oracle = await deployMockOracleContract(signers[0]);
   const owner = await chainlinkOracle.owner();
-  // send some ETH to the owner
+  // send some ETH to the owner so they can pay for gas
   await ethers.provider.send("hardhat_setBalance", [owner, "0x1000000000000000000"]);
   await ethers.provider.send("hardhat_impersonateAccount", [owner]);
   const ownerSigner = await ethers.provider.getSigner(owner);

@@ -31,6 +31,6 @@ export interface Mocks {
 }
 
 export interface Signers {
-  admin: SignerWithAddress;
   borrower: SignerWithAddress;
+  runner: SignerWithAddress;
 }

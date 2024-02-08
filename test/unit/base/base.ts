@@ -22,8 +22,8 @@ export function unitTestBase(): void {
           startBlock: 0,
         },
         persistenceEnabled: false,
-        provider: this.signers.admin.provider as Provider,
-        signer: this.signers.admin,
+        provider: this.signers.runner.provider as Provider,
+        signer: this.signers.runner,
       });
     });
 

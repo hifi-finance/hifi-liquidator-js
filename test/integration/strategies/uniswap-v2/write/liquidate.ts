@@ -22,18 +22,18 @@ export function shouldBehaveLikeLiquidate(): void {
 
   context("when the pair exists", function () {
     beforeEach(async function () {
-      const timestamp = (await this.signers.admin.provider?.getBlock("latest"))?.timestamp || 0;
+      const timestamp = (await this.signers.borrower.provider?.getBlock("latest"))?.timestamp || 0;
 
       await this.mocks.oracle.mock.latestRoundData.returns(0, "229849896605", 0, timestamp, 0);
 
       await this.contracts.weth
-        .connect(this.signers.admin)
+        .connect(this.signers.borrower)
         .approve(this.contracts.balanceSheet.address, "1000000000000000000");
       await this.contracts.balanceSheet
-        .connect(this.signers.admin)
+        .connect(this.signers.borrower)
         .depositCollateral(this.contracts.weth.address, "1000000000000000000");
       await this.contracts.balanceSheet
-        .connect(this.signers.admin)
+        .connect(this.signers.borrower)
         .borrow(this.contracts.bond.address, "1838799100000000000000");
 
       await this.mocks.oracle.mock.latestRoundData.returns(0, "9849896605", 0, timestamp, 0);
@@ -41,13 +41,13 @@ export function shouldBehaveLikeLiquidate(): void {
 
     it("liquidates the underwater vaults", async function () {
       await this.contracts.usdc
-        .connect(this.signers.admin)
+        .connect(this.signers.runner)
         .approve("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc", ethers.constants.MaxUint256);
       await this.contracts.weth
-        .connect(this.signers.admin)
+        .connect(this.signers.runner)
         .approve("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc", ethers.constants.MaxUint256);
       await this.liquidator.liquidate(
-        this.signers.admin.address,
+        this.signers.borrower.address,
         this.contracts.bond.address,
         this.contracts.weth.address,
         BigNumber.from("1759999927"),

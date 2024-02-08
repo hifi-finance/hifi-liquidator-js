@@ -10,8 +10,8 @@ export function integrationTestUniswapV2(): void {
       this.liquidator = new StrategyTester(UniswapV2Strategy, {
         networkConfig: networkConfig["homestead"],
         persistenceEnabled: false,
-        provider: this.signers.admin.provider as Provider,
-        signer: this.signers.admin,
+        provider: this.signers.runner.provider as Provider,
+        signer: this.signers.runner,
       });
     });
 
