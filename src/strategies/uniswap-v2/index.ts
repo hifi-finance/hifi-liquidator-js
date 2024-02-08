@@ -17,7 +17,7 @@ export class Strategy extends BaseStrategy {
     super({ ...args, strategyName: "uniswap-v2" });
 
     if (!this.networkConfig.contracts.strategies["uniswap-v2"]) {
-      throw new Error("Uniswap V2 strategy is not supported on " + this.provider.network.name);
+      throw new Error("Uniswap V2 Strategy: Not supported on " + this.provider.network.name);
     }
     this.contractAddresses = this.networkConfig.contracts.strategies["uniswap-v2"];
   }
@@ -36,7 +36,7 @@ export class Strategy extends BaseStrategy {
       tokenB: underlying,
     });
     if ((await this.provider.getCode(pair)).slice(2).length === 0) {
-      throw new Error("Pair does not exist");
+      throw new Error("Uniswap V2 Strategy: Pair does not exist");
     }
 
     const contract = new Contract(pair, IUniswapV2Pair__factory.abi, this.signer) as IUniswapV2Pair;

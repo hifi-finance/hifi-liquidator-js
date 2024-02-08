@@ -1,13 +1,15 @@
-import { UNISWAP_V3_FEE_TIERS, UNISWAP_V3_QUOTER } from "./constants";
 import { NetworkName, Provider } from "./types";
-import { MaxUint256 } from "@ethersproject/constants";
-import IQuoterV2 from "@uniswap/v3-periphery/artifacts/contracts/interfaces/IQuoterV2.sol/IQuoterV2.json";
-import { BigNumber, BigNumberish, Contract, Event, EventFilter, utils } from "ethers";
+import { BigNumberish, Contract, Event, EventFilter, Signer, utils } from "ethers";
 import { getCreate2Address, solidityKeccak256, solidityPack } from "ethers/lib/utils";
 import * as fs from "fs";
 import StormDB from "stormdb";
 import { format } from "util";
 import * as winston from "winston";
+import { AlphaRouter, CurrencyAmount } from "@uniswap/smart-order-router";
+import { IERC20Metadata__factory } from "@uniswap/smart-order-router/build/main/types/v3/factories/IERC20Metadata__factory";
+import { Token, TradeType } from "@uniswap/sdk-core";
+import { Protocol } from "@uniswap/router-sdk";
+import { Pool } from "@uniswap/v3-sdk";
 
 export function addressesAreEqual(address0: string, address1: string) {
   return utils.getAddress(address0) === utils.getAddress(address1);
@@ -41,37 +43,73 @@ export function getFlashbotsURL(chainName: NetworkName) {
   }
 }
 
-export async function getOptimalUniswapV3Fee({
+export async function getOptimalUniswapV3Path({
   collateral,
   underlying,
   underlyingAmount,
-  provider,
+  signer,
 }: {
   collateral: string;
   underlying: string;
   underlyingAmount: BigNumberish;
-  provider: Provider;
+  signer: Signer;
 }) {
-  const contract = new Contract(UNISWAP_V3_QUOTER, IQuoterV2.abi, provider);
-  const { fee } = (
-    await Promise.all(
-      UNISWAP_V3_FEE_TIERS.map(async fee => {
-        try {
-          const { amountIn }: { amountIn: BigNumber } = await contract.callStatic.quoteExactOutputSingle({
-            tokenIn: collateral,
-            tokenOut: underlying,
-            amount: underlyingAmount,
-            fee: fee,
-            sqrtPriceLimitX96: 0,
-          });
-          return { fee, amountIn };
-        } catch {
-          return { fee, amountIn: MaxUint256 };
-        }
-      }),
-    )
-  ).reduce((prev, current) => (current.amountIn.lt(prev.amountIn) ? current : prev));
-  return fee;
+  const provider = signer.provider! as Provider;
+  const chainId = provider.network.chainId;
+  const router = new AlphaRouter({ chainId, provider });
+
+  const collateralContract = new Contract(collateral, IERC20Metadata__factory.abi, provider);
+  const underlyingContract = new Contract(underlying, IERC20Metadata__factory.abi, provider);
+
+  const tokenIn = new Token(
+    chainId,
+    collateralContract.address,
+    await collateralContract.decimals(),
+    await collateralContract.symbol(),
+    await collateralContract.name(),
+  );
+  const tokenOut = new Token(
+    chainId,
+    underlyingContract.address,
+    await underlyingContract.decimals(),
+    await underlyingContract.symbol(),
+    await underlyingContract.name(),
+  );
+
+  const route = (await router.route(
+    CurrencyAmount.fromRawAmount(tokenOut, underlyingAmount.toString()),
+    tokenIn,
+    TradeType.EXACT_OUTPUT,
+    undefined,
+    {
+      protocols: [Protocol.V3],
+    },
+  ))!;
+
+  if (!route) {
+    throw new Error("Uniswap V3 Strategy: No swap path found");
+  }
+
+  const { pools, path: tokens } = route.trade.routes[0] as { pools: Pool[]; path: Token[] };
+
+  const routePoolFees = pools.map(({ fee }) => fee.toString()).reverse();
+  const routeTokens = tokens.map(({ address }) => address).reverse();
+
+  if (routePoolFees.length !== routeTokens.length - 1) {
+    throw new Error("Uniswap V3 Strategy: Route pool fees and token length mismatch");
+  }
+
+  // Compute the route values.
+  const values: string[] = [routeTokens[0]];
+  for (let i = 0; i < routePoolFees.length; i++) {
+    values.push(routePoolFees[i]);
+    values.push(routeTokens[i + 1]);
+  }
+
+  // Compute the route types.
+  const types: ("address" | "uint24")[] = values.map(value => (utils.isAddress(value) ? "address" : "uint24"));
+
+  return utils.solidityPack(types, values);
 }
 
 export function getUniswapV2PairInfo({

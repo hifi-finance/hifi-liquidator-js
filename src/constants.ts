@@ -3,7 +3,5 @@ export const HTOKENS = "htokens";
 export const LAST_SYNCED_BLOCK = "lastSyncedBlock";
 export const UNISWAP_V2 = "uniswap-v2";
 export const UNISWAP_V3 = "uniswap-v3";
-export const UNISWAP_V3_FEE_TIERS = [100, 500, 3000, 10000];
-export const UNISWAP_V3_QUOTER = "0x61fFE014bA17989E743c5F6cB21bF9697530B21e";
 export const UNISWAP_V2_INIT_CODE_HASH = "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f";
 export const VAULTS = "vaults";

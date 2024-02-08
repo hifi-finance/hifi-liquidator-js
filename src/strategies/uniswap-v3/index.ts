@@ -1,9 +1,10 @@
 import { StrategyArgs } from "../../types";
-import { getOptimalUniswapV3Fee } from "../../utils";
+import { getOptimalUniswapV3Path } from "../../utils";
 import { BaseStrategy } from "../base";
 import { MinInt256 } from "@ethersproject/constants";
 import { IFlashUniswapV3 } from "@hifi/flash-swap/dist/types/contracts/uniswap-v3/IFlashUniswapV3";
 import { FlashUniswapV3__factory } from "@hifi/flash-swap/dist/types/factories/contracts/uniswap-v3/FlashUniswapV3__factory";
+
 import { BigNumber, BigNumberish, Contract, ContractReceipt } from "ethers";
 
 export class Strategy extends BaseStrategy {
@@ -13,7 +14,7 @@ export class Strategy extends BaseStrategy {
     super({ ...args, strategyName: "uniswap-v3" });
 
     if (!this.networkConfig.contracts.strategies["uniswap-v3"]) {
-      throw new Error("Uniswap V3 strategy is not supported on " + this.provider.network.name);
+      throw new Error("Uniswap V3 Strategy: Not supported on " + this.provider.network.name);
     }
     this.flashUniswapV3 = new Contract(
       this.networkConfig.contracts.strategies["uniswap-v3"].flashSwap,
@@ -35,16 +36,21 @@ export class Strategy extends BaseStrategy {
       borrower: string;
       bond: string;
       collateral: string;
-      poolFee: BigNumberish;
+      path: string;
       turnout: BigNumberish;
       underlyingAmount: BigNumberish;
     } = {
       borrower: account,
-      bond: bond,
-      collateral: collateral,
-      poolFee: await getOptimalUniswapV3Fee({ collateral, underlying, underlyingAmount, provider: this.provider }),
+      bond,
+      collateral,
+      path: await getOptimalUniswapV3Path({
+        collateral,
+        underlying,
+        underlyingAmount,
+        signer: this.signer,
+      }),
       turnout: MinInt256,
-      underlyingAmount: underlyingAmount,
+      underlyingAmount,
     };
     // TODO: profitibility calculation (including gas)
     const gasLimit = await this.flashUniswapV3.estimateGas.flashLiquidate(flashLiquidateArgs);
