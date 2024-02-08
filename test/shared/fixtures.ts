@@ -27,16 +27,28 @@ type IntegrationFixtureUniswapReturnType = {
 };
 
 export async function integrationFixtureUniswap(signers: Signer[]): Promise<IntegrationFixtureUniswapReturnType> {
-  const balanceSheet = <BalanceSheet>(
-    await ethers.getContractAt(BalanceSheetV2__factory.abi, "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b")
+  const balanceSheet = <BalanceSheet>await ethers.getContractAt(
+    // @ts-ignore
+    BalanceSheetV2__factory.abi,
+    "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b",
   );
-  const bond = <HToken>await ethers.getContractAt(HToken__factory.abi, "0x4EC7101B179c28e4332ED5B06174b38AeE18cf32");
-  const chainlinkOracle = <ChainlinkOperator>(
-    await ethers.getContractAt(ChainlinkOperator__factory.abi, await balanceSheet.oracle())
+  const bond = <HToken>await ethers.getContractAt(
+    // @ts-ignore
+    HToken__factory.abi,
+    "0x4EC7101B179c28e4332ED5B06174b38AeE18cf32",
+  );
+  const chainlinkOracle = <ChainlinkOperator>await ethers.getContractAt(
+    // @ts-ignore
+    ChainlinkOperator__factory.abi,
+    await balanceSheet.oracle(),
   );
 
   const usdcAddress = (await chainlinkOracle.getFeed("USDC"))[0];
-  const usdc = <Erc20>await ethers.getContractAt(Erc20__factory.abi, usdcAddress);
+  const usdc = <Erc20>await ethers.getContractAt(
+    // @ts-ignore
+    Erc20__factory.abi,
+    usdcAddress,
+  );
 
   // impersonate a usdc whale
   const usdcWhale = "0x28C6c06298d514Db089934071355E5743bf21d60";
@@ -45,7 +57,11 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
   await usdc.connect(usdcWhaleSigner).transfer(await signers[0].getAddress(), ethers.utils.parseUnits("1000000", 6));
 
   const wethAddress = (await chainlinkOracle.getFeed("WETH"))[0];
-  const weth = <Erc20>await ethers.getContractAt(Erc20__factory.abi, wethAddress);
+  const weth = <Erc20>await ethers.getContractAt(
+    // @ts-ignore
+    Erc20__factory.abi,
+    wethAddress,
+  );
   // impersonate a weth whale
   const wethWhale = "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806";
   await ethers.provider.send("hardhat_impersonateAccount", [wethWhale]);

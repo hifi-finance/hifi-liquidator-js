@@ -25,6 +25,7 @@ export class MockStrategy extends BaseStrategy {
 }
 
 export async function deployMockBalanceSheetContract(deployer: Signer): Promise<MockContract> {
+  // @ts-ignore
   const balanceSheet: MockContract = await deployMockContract(deployer, BalanceSheet__factory.abi);
   return balanceSheet;
 }
@@ -35,6 +36,7 @@ export async function deployMockErc20Contract(
   symbol: string,
   decimals: number,
 ): Promise<MockContract> {
+  // @ts-ignore
   const erc20: MockContract = await deployMockContract(deployer, Erc20__factory.abi);
   await erc20.mock.name.returns(name);
   await erc20.mock.symbol.returns(symbol);
@@ -43,6 +45,7 @@ export async function deployMockErc20Contract(
 }
 
 export async function deployMockHTokenContract(deployer: Signer, underlying: string): Promise<MockContract> {
+  // @ts-ignore
   const hToken: MockContract = await deployMockContract(deployer, HToken__factory.abi);
   await hToken.mock.name.returns("Hifi USDC (2025-3-28)");
   await hToken.mock.symbol.returns("hUSC25Mar28");
@@ -55,6 +58,7 @@ export async function deployMockHTokenContract(deployer: Signer, underlying: str
 }
 
 export async function deployMockOracleContract(deployer: Signer): Promise<MockContract> {
+  // @ts-ignore
   const oracle: MockContract = await deployMockContract(deployer, IAggregatorV3__factory.abi);
   return oracle;
 }
