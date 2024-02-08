@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 
 export function shouldBehaveLikeLiquidate(): void {
   context("when the pair does not exist", function () {
@@ -40,21 +40,30 @@ export function shouldBehaveLikeLiquidate(): void {
     });
 
     it("liquidates the underwater vaults", async function () {
-      await this.contracts.usdc
-        .connect(this.signers.runner)
-        .approve("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc", ethers.constants.MaxUint256);
-      await this.contracts.weth
-        .connect(this.signers.runner)
-        .approve("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc", ethers.constants.MaxUint256);
+      let excessLiquidity, shortfallLiquidity;
+
+      // Assert the state of the vault pre liquidation
+      [excessLiquidity, shortfallLiquidity] = await this.contracts.balanceSheet.getCurrentAccountLiquidity(
+        this.signers.borrower.address,
+      );
+      expect(excessLiquidity).to.be.equal("0");
+      expect(shortfallLiquidity).to.be.equal("1759999927160000000000");
+
+      // Execute liquidation
       await this.liquidator.liquidate(
         this.signers.borrower.address,
         this.contracts.bond.address,
         this.contracts.weth.address,
-        BigNumber.from("1759999927"),
+        BigNumber.from("2000000000"),
         this.contracts.usdc.address,
       );
 
-      // TODO: assert the state of the vault pre and post liquidation
+      // Assert the state of the vault post liquidation
+      [excessLiquidity, shortfallLiquidity] = await this.contracts.balanceSheet.getCurrentAccountLiquidity(
+        this.signers.borrower.address,
+      );
+      expect(excessLiquidity).to.be.equal("0");
+      expect(shortfallLiquidity).to.be.equal("1749254585409090909091");
     });
   });
 }

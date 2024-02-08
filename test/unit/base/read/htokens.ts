@@ -5,7 +5,6 @@ import { HToken__factory } from "@hifi/protocol/dist/types/factories/contracts/c
 export function shouldBehaveLikeHTokens(): void {
   context("when no hTokens are cached", function () {
     it("returns an empty object", async function () {
-      // TODO: find a better way to expose private methods
       const hTokens = this.liquidator.htokens();
       expect(hTokens).to.be.empty;
     });
