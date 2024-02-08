@@ -17,6 +17,7 @@ import {
 } from "./typechain";
 import { ethers } from "hardhat";
 import { BalanceSheetV2__factory } from "@hifi/protocol/dist/types/factories/contracts/core/balance-sheet/BalanceSheetV2__factory";
+import { BALANCESHEET_ADDRESS, HTOKEN_ADDRESS, USDC_WHALE_ADDRESS, WETH_WHALE_ADDRESS } from "./constants";
 
 type IntegrationFixtureUniswapReturnType = {
   balanceSheet: BalanceSheet;
@@ -30,12 +31,12 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
   const balanceSheet = <BalanceSheet>await ethers.getContractAt(
     // @ts-ignore
     BalanceSheetV2__factory.abi,
-    "0x452467A37f7A0c1EA8432A52b8bbe3Cc31E9513b",
+    BALANCESHEET_ADDRESS,
   );
   const bond = <HToken>await ethers.getContractAt(
     // @ts-ignore
     HToken__factory.abi,
-    "0x4EC7101B179c28e4332ED5B06174b38AeE18cf32",
+    HTOKEN_ADDRESS,
   );
   const chainlinkOracle = <ChainlinkOperator>await ethers.getContractAt(
     // @ts-ignore
@@ -53,9 +54,8 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
   const runnerAddress = await signers[0].getAddress();
 
   // impersonate a usdc whale
-  const usdcWhale = "0x28C6c06298d514Db089934071355E5743bf21d60";
-  await ethers.provider.send("hardhat_impersonateAccount", [usdcWhale]);
-  const usdcWhaleSigner = await ethers.provider.getSigner(usdcWhale);
+  await ethers.provider.send("hardhat_impersonateAccount", [USDC_WHALE_ADDRESS]);
+  const usdcWhaleSigner = await ethers.provider.getSigner(USDC_WHALE_ADDRESS);
   await usdc.connect(usdcWhaleSigner).transfer(runnerAddress, ethers.utils.parseUnits("1000000", 6));
 
   const wethAddress = (await chainlinkOracle.getFeed("WETH"))[0];
@@ -65,9 +65,8 @@ export async function integrationFixtureUniswap(signers: Signer[]): Promise<Inte
     wethAddress,
   );
   // impersonate a weth whale
-  const wethWhale = "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806";
-  await ethers.provider.send("hardhat_impersonateAccount", [wethWhale]);
-  const wethWhaleSigner = await ethers.provider.getSigner(wethWhale);
+  await ethers.provider.send("hardhat_impersonateAccount", [WETH_WHALE_ADDRESS]);
+  const wethWhaleSigner = await ethers.provider.getSigner(WETH_WHALE_ADDRESS);
   await weth.connect(wethWhaleSigner).transfer(runnerAddress, ethers.utils.parseUnits("10000", 18));
 
   // mock chainlink oracle owner and set feed
