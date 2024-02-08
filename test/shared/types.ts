@@ -2,12 +2,13 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signe
 import type { Fixture, MockContract } from "ethereum-waffle";
 
 import type { BalanceSheet, Erc20 } from "./typechain";
-import type { BaseStrategy } from "../../src/strategies/base";
+import { StrategyTester } from "./utils";
+import { BaseStrategy } from "../../src/strategies/base";
 
 declare module "mocha" {
   interface Context {
     contracts: Contracts;
-    liquidator: BaseStrategy;
+    liquidator: StrategyTester<BaseStrategy>;
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
     mocks: Mocks;
     signers: Signers;

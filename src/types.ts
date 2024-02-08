@@ -1,11 +1,11 @@
 import { UNISWAP_V2, UNISWAP_V3 } from "./constants";
-import { Wallet, providers } from "ethers";
+import { Signer, providers } from "ethers";
 
 export type StrategyArgs = {
   networkConfig: NetworkConfig;
   persistenceEnabled: boolean;
   provider: Provider;
-  signer: Wallet;
+  signer: Signer;
 };
 
 export type NetworkName = "homestead" | "matic";

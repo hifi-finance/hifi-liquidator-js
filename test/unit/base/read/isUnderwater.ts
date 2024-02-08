@@ -9,7 +9,7 @@ export function shouldBehaveLikeIsUnderwater(): void {
     });
 
     it("returns false", async function () {
-      const isUnderwater = await (this.liquidator as any).isUnderwater(this.signers.borrower.address);
+      const isUnderwater = await this.liquidator.isUnderwater(this.signers.borrower.address);
       expect(isUnderwater).to.be.false;
     });
   });
@@ -22,7 +22,7 @@ export function shouldBehaveLikeIsUnderwater(): void {
     });
 
     it("returns true", async function () {
-      const isUnderwater = await (this.liquidator as any).isUnderwater(this.signers.borrower.address);
+      const isUnderwater = await this.liquidator.isUnderwater(this.signers.borrower.address);
       expect(isUnderwater).to.be.true;
     });
   });

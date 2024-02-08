@@ -1,6 +1,7 @@
 import { Provider } from "../../../src/types";
 import { unitFixtureBase } from "../../shared/fixtures";
 import { MockStrategy } from "../../shared/mocks";
+import { StrategyTester } from "../../shared/utils";
 import { shouldBehaveLikeBase } from "./base.behavior";
 
 export function unitTestBase(): void {
@@ -11,7 +12,7 @@ export function unitTestBase(): void {
       this.mocks.bond = bond;
       this.mocks.usdc = usdc;
       this.mocks.weth = weth;
-      this.liquidator = new MockStrategy({
+      this.liquidator = new StrategyTester(MockStrategy, {
         networkConfig: {
           contracts: {
             balanceSheet: balanceSheet.address,
@@ -22,7 +23,7 @@ export function unitTestBase(): void {
         },
         persistenceEnabled: false,
         provider: this.signers.admin.provider as Provider,
-        signer: this.signers.admin as any,
+        signer: this.signers.admin,
       });
     });
 

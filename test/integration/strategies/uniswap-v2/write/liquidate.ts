@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 export function shouldBehaveLikeLiquidate(): void {
   context("when the pair does not exist", function () {
@@ -9,11 +9,11 @@ export function shouldBehaveLikeLiquidate(): void {
 
     it("reverts", async function () {
       await expect(
-        (this.liquidator as any).liquidate(
+        this.liquidator.liquidate(
           this.signers.borrower.address,
           this.contracts.bond.address,
           this.contracts.usdc.address,
-          "0",
+          BigNumber.from("0"),
           this.contracts.usdc.address,
         ),
       ).to.be.rejectedWith("Uniswap V2 Strategy: Pair does not exist");
@@ -46,11 +46,11 @@ export function shouldBehaveLikeLiquidate(): void {
       await this.contracts.weth
         .connect(this.signers.admin)
         .approve("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc", ethers.constants.MaxUint256);
-      await (this.liquidator as any).liquidate(
+      await this.liquidator.liquidate(
         this.signers.admin.address,
         this.contracts.bond.address,
         this.contracts.weth.address,
-        "1759999927",
+        BigNumber.from("1759999927"),
         this.contracts.usdc.address,
       );
 

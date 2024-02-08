@@ -21,8 +21,9 @@ const config: HardhatUserConfig = {
         mnemonic: "test test test test test test test test test test test junk",
       },
       chainId: 1,
+      blockGasLimit: 150_000_000,
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
+        url: `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
         blockNumber: FORK_BLOCK,
       },
     },

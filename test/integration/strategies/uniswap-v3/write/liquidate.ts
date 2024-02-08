@@ -1,4 +1,5 @@
-import { expect } from "chai";
+import { BigNumber } from "ethers";
+import { ethers } from "hardhat";
 
 export function shouldBehaveLikeLiquidate(): void {
   beforeEach(async function () {
@@ -29,11 +30,11 @@ export function shouldBehaveLikeLiquidate(): void {
     // Increase test timeout to 2 minutes
     this.timeout(120000);
     // Execute liquidation
-    await (this.liquidator as any).liquidate(
+    await this.liquidator.liquidate(
       this.signers.admin.address,
       this.contracts.bond.address,
       this.contracts.weth.address,
-      "1759999927",
+      BigNumber.from("1759999927"),
       this.contracts.usdc.address,
     );
 
