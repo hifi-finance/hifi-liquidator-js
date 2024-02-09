@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:16-slim AS base
+FROM --platform=linux/amd64 node:20-alpine AS base
 LABEL author="scorpion9979 <ahmed.i.tawefeeq@protonmail.com>"
 WORKDIR /liquidator
 

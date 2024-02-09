@@ -13,6 +13,5 @@
     "target": "es6"
   },
   "exclude": ["node_modules"],
-  "files": ["./hardhat.config.ts"],
-  "include": ["src/**/*", "test/**/*"]
+  "include": ["src/**/*"]
 }
